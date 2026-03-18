@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Organic Rolled Oats",
+    "quantity": 0.5,
+    "unit": "kg",
+    "category": "Grains & Cereals",
+    "expiry_date": "2026-08-01",
+    "reorder_threshold": 1.0
+  },
+  {
+    "name": "Almond Milk Unsweetened",
+    "quantity": 1.2,
+    "unit": "L",
+    "category": "Dairy Alternatives",
+    "expiry_date": "2026-03-22",
+    "reorder_threshold": 1.0
+  },
+  {
+    "name": "Canned Chickpeas",
+    "quantity": 8,
+    "unit": "cans",
+    "category": "Legumes",
+    "expiry_date": "2028-01-01",
+    "reorder_threshold": 2
+  },
+  {
+    "name": "Spinach Leaves",
+    "quantity": 0.15,
+    "unit": "kg",
+    "category": "Produce",
+    "expiry_date": "2026-03-23",
+    "reorder_threshold": 0.3
+  },
+  {
+    "name": "Fair-Trade Coffee Beans",
+    "quantity": 0.3,
+    "unit": "kg",
+    "category": "Beverages",
+    "expiry_date": "2026-09-01",
+    "reorder_threshold": 0.5
+  },
+  {
+    "name": "Brown Rice",
+    "quantity": 3.0,
+    "unit": "kg",
+    "category": "Grains & Cereals",
+    "expiry_date": "2027-06-01",
+    "reorder_threshold": 1.0
+  },
+  {
+    "name": "Coconut Oil",
+    "quantity": 0.4,
+    "unit": "L",
+    "category": "Oils & Fats",
+    "expiry_date": "2027-01-01",
+    "reorder_threshold": 0.3
+  },
+  {
+    "name": "Black Lentils",
+    "quantity": 1.5,
+    "unit": "kg",
+    "category": "Legumes",
+    "expiry_date": "2027-12-01",
+    "reorder_threshold": 0.5
+  },
+  {
+    "name": "Oat Milk",
+    "quantity": 2,
+    "unit": "L",
+    "category": "Dairy Alternatives",
+    "expiry_date": "2026-04-10",
+    "reorder_threshold": 1.0
+  },
+  {
+    "name": "Green Tea Bags",
+    "quantity": 40,
+    "unit": "bags",
+    "category": "Beverages",
+    "expiry_date": "2027-03-01",
+    "reorder_threshold": 10
+  },
+  {
+    "name": "Biodegradable Dish Soap",
+    "quantity": 1,
+    "unit": "bottle",
+    "category": "Cleaning Supplies",
+    "expiry_date": null,
+    "reorder_threshold": 1
+  },
+  {
+    "name": "Recycled Paper Towels",
+    "quantity": 3,
+    "unit": "rolls",
+    "category": "Cleaning Supplies",
+    "expiry_date": null,
+    "reorder_threshold": 2
+  },
+  {
+    "name": "Chia Seeds",
+    "quantity": 0.25,
+    "unit": "kg",
+    "category": "Seeds & Nuts",
+    "expiry_date": "2026-11-01",
+    "reorder_threshold": 0.2
+  },
+  {
+    "name": "Olive Oil Extra Virgin",
+    "quantity": 0.5,
+    "unit": "L",
+    "category": "Oils & Fats",
+    "expiry_date": "2026-12-01",
+    "reorder_threshold": 0.3
+  },
+  {
+    "name": "Canned Tomatoes",
+    "quantity": 12,
+    "unit": "cans",
+    "category": "Produce",
+    "expiry_date": "2028-06-01",
+    "reorder_threshold": 4
+  },
+  {
+    "name": "Quinoa",
+    "quantity": 0.8,
+    "unit": "kg",
+    "category": "Grains & Cereals",
+    "expiry_date": "2027-02-01",
+    "reorder_threshold": 0.5
+  },
+  {
+    "name": "Almond Butter",
+    "quantity": 0.3,
+    "unit": "jar",
+    "category": "Seeds & Nuts",
+    "expiry_date": "2026-07-01",
+    "reorder_threshold": 0.5
+  },
+  {
+    "name": "Kombucha Culture",
+    "quantity": 2,
+    "unit": "jars",
+    "category": "Fermented Goods",
+    "expiry_date": "2026-05-01",
+    "reorder_threshold": 1
+  },
+  {
+    "name": "Whole Wheat Flour",
+    "quantity": 2.0,
+    "unit": "kg",
+    "category": "Grains & Cereals",
+    "expiry_date": "2026-06-01",
+    "reorder_threshold": 1.0
+  },
+  {
+    "name": "Apple Cider Vinegar",
+    "quantity": 0.75,
+    "unit": "L",
+    "category": "Condiments",
+    "expiry_date": "2028-01-01",
+    "reorder_threshold": 0.25
+  }
+]
