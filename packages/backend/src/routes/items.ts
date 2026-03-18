@@ -1,6 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 import { getPool } from '../db/connection.js';
 import * as svc from '../services/inventoryService.js';
+import * as aiService from '../services/aiService.js';
+import { AiUnavailableError } from '../types/index.js';
 
 const router = Router();
 
@@ -39,6 +41,29 @@ router.get('/', async (req: Request, res: Response) => {
     res.json({ data: items, total: items.length });
   } catch {
     res.status(500).json({ error: 'Failed to fetch items' });
+  }
+});
+
+// POST /api/items/scan-shelf  — Gemini Vision image analysis
+router.post('/scan-shelf', async (req: Request, res: Response) => {
+  const { image, mimeType } = req.body as { image?: string; mimeType?: string };
+  if (!image || typeof image !== 'string') {
+    return res.status(400).json({ error: 'image (base64 string) is required' });
+  }
+  const mime = mimeType ?? 'image/jpeg';
+
+  try {
+    const items = await aiService.scanShelfImage(image, mime);
+    res.json({ items, ai_generated: true });
+  } catch (err) {
+    if (err instanceof AiUnavailableError) {
+      return res.status(503).json({
+        error: 'AI vision unavailable. Check your GEMINI_API_KEY.',
+        items: [],
+        ai_generated: false,
+      });
+    }
+    res.status(500).json({ error: 'Shelf scan failed' });
   }
 });
 

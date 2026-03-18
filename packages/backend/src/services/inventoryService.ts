@@ -47,7 +47,7 @@ export async function listItems(
   }
 ): Promise<Item[]> {
   let sql = 'SELECT * FROM items WHERE is_archived = 0';
-  const params: unknown[] = [];
+  const params: (string | number | boolean)[] = [];
 
   if (filters.search) {
     sql += ' AND name LIKE ?';
@@ -133,7 +133,7 @@ export async function updateItem(
   if (fields.length === 0) return getItemById(pool, id);
 
   const setClauses = fields.map((f) => `\`${f}\` = ?`).join(', ');
-  const values = fields.map((f) => (patch as Record<string, unknown>)[f] ?? null);
+  const values = fields.map((f) => (patch as Record<string, string | number | null>)[f] ?? null);
 
   await pool.execute(
     `UPDATE items SET ${setClauses} WHERE id = ? AND is_archived = 0`,
@@ -253,9 +253,60 @@ export async function getUsageLogs(pool: Pool, itemId: number): Promise<{
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
+export interface ForecastAlert {
+  item_id: number;
+  name: string;
+  unit: string;
+  days_until_stockout: number;
+  predicted_burnout_date: string;
+  recommended_reorder_date: string;
+  confidence: ForecastResult['confidence'];
+  ai_generated: boolean;
+}
+
 export async function getDashboardData(pool: Pool) {
   const [allRows] = await pool.execute<RowDataPacket[]>('SELECT * FROM items WHERE is_archived = 0');
   const all = (allRows as Item[]).map(withAlertStatus);
+
+  // Compute forecast alerts: quick rule-based forecast for items with usage logs
+  const [logRows] = await pool.execute<RowDataPacket[]>(`
+    SELECT item_id, quantity_used, logged_at
+    FROM usage_logs ul
+    WHERE logged_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    ORDER BY item_id, logged_at ASC
+  `);
+
+  const logsByItem = new Map<number, UsageLog[]>();
+  for (const row of logRows as UsageLog[]) {
+    const id = row.item_id;
+    if (!logsByItem.has(id)) logsByItem.set(id, []);
+    logsByItem.get(id)!.push(row);
+  }
+
+  const forecastAlerts: ForecastAlert[] = [];
+  for (const item of all) {
+    const logs = logsByItem.get(item.id);
+    if (!logs || logs.length < 2) continue;
+    const forecast = fallback.forecastStockout(item, logs);
+    if (
+      forecast.days_until_stockout != null &&
+      forecast.days_until_stockout <= 14 &&
+      forecast.predicted_burnout_date != null &&
+      forecast.recommended_reorder_date != null
+    ) {
+      forecastAlerts.push({
+        item_id: item.id,
+        name: item.name,
+        unit: item.unit,
+        days_until_stockout: forecast.days_until_stockout,
+        predicted_burnout_date: forecast.predicted_burnout_date,
+        recommended_reorder_date: forecast.recommended_reorder_date,
+        confidence: forecast.confidence,
+        ai_generated: false,
+      });
+    }
+  }
+  forecastAlerts.sort((a, b) => a.days_until_stockout - b.days_until_stockout);
 
   const lowStock = all.filter((i) => i.alert_status === 'critical' && Number(i.reorder_threshold) > 0);
   const criticalItems = all.filter((i) => i.alert_status === 'critical');
@@ -299,6 +350,7 @@ export async function getDashboardData(pool: Pool) {
   return {
     low_stock: lowStock,
     expiring_soon: expiringSoon,
+    forecast_alerts: forecastAlerts,
     sustainability_score: {
       score,
       grade,

@@ -5,6 +5,9 @@ import { InventoryPage } from './pages/InventoryPage.js';
 import { ItemDetailPage } from './pages/ItemDetailPage.js';
 import { UsagePage } from './pages/UsagePage.js';
 import { ProcurementPage } from './pages/ProcurementPage.js';
+import { ReorderPage } from './pages/ReorderPage.js';
+import { AnalyticsPage } from './pages/AnalyticsPage.js';
+import { ChatPage } from './pages/ChatPage.js';
 
 export function App() {
   return (
@@ -18,6 +21,9 @@ export function App() {
             <Route path="/inventory/:id"     element={<ItemDetailPage />} />
             <Route path="/usage"             element={<UsagePage />} />
             <Route path="/procurement"       element={<ProcurementPage />} />
+            <Route path="/reorder"           element={<ReorderPage />} />
+            <Route path="/analytics"         element={<AnalyticsPage />} />
+            <Route path="/chat"              element={<ChatPage />} />
           </Routes>
         </main>
       </div>

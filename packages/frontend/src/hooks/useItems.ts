@@ -24,7 +24,7 @@ export function useItems() {
   }, []);
 
   const addItem = useCallback(
-    async (payload: Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days'>) => {
+    async (payload: Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days' | 'alert_status' | 'is_archived'>) => {
       const res = await api.createItem(payload);
       setItems((prev) => [res.data, ...prev]);
       return res;
@@ -33,7 +33,7 @@ export function useItems() {
   );
 
   const editItem = useCallback(
-    async (id: number, patch: Partial<Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days'>>) => {
+    async (id: number, patch: Partial<Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days' | 'alert_status' | 'is_archived'>>) => {
       const res = await api.updateItem(id, patch);
       setItems((prev) => prev.map((i) => (i.id === id ? res.data : i)));
       return res.data;

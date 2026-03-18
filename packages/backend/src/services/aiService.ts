@@ -9,6 +9,8 @@ export const CATEGORIES = [
   'Office Supplies', 'Other',
 ];
 
+const MODEL = 'gemini-3-flash-preview';
+
 function getClient(): GoogleGenerativeAI {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new AiUnavailableError('GEMINI_API_KEY not set');
@@ -26,9 +28,8 @@ function safeJson<T>(text: string): T | null {
 
 export async function categorizeItem(name: string, unit: string): Promise<string> {
   if (process.env.USE_FALLBACK_ONLY === 'true') throw new AiUnavailableError('Fallback mode');
-
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = getClient().getGenerativeModel({ model: MODEL });
     const result = await model.generateContent(
       `You are an inventory categorization assistant. Given an item name and unit, return ONLY one category from this exact list:\n${CATEGORIES.join(', ')}\n\nItem: "${name}" (unit: ${unit})\nRespond with exactly one category name, nothing else.`
     );
@@ -42,11 +43,12 @@ export async function categorizeItem(name: string, unit: string): Promise<string
 
 export async function forecastStockout(item: Item, logs: UsageLog[]): Promise<ForecastResult> {
   if (process.env.USE_FALLBACK_ONLY === 'true') throw new AiUnavailableError('Fallback mode');
-
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const recentLogs = logs.slice(-30).map((l) => ({ date: l.logged_at.slice(0, 10), used: l.quantity_used }));
-
+    const model = getClient().getGenerativeModel({ model: MODEL });
+    const recentLogs = logs.slice(-30).map((l) => ({
+      date: new Date(l.logged_at).toISOString().slice(0, 10),
+      used: l.quantity_used,
+    }));
     const prompt = `You are an inventory forecasting assistant. Analyze this data and predict days until stockout.
 
 Item: ${item.name}
@@ -61,7 +63,7 @@ Respond ONLY with valid JSON:
     const parsed = safeJson<{ days_until_stockout: number | null; confidence: string; reasoning: string }>(result.response.text());
     if (!parsed) throw new Error('Invalid JSON response');
 
-    const confidence = (['low','medium','high'].includes(parsed.confidence)
+    const confidence = (['low', 'medium', 'high'].includes(parsed.confidence)
       ? parsed.confidence : 'medium') as ForecastResult['confidence'];
 
     const forecast = buildForecastResult(parsed.days_until_stockout, confidence, true, parsed.reasoning);
@@ -74,15 +76,92 @@ Respond ONLY with valid JSON:
   }
 }
 
+export interface ScannedItem {
+  name: string;
+  estimated_quantity: number;
+  unit: string;
+  confidence: 'high' | 'medium' | 'low';
+  notes?: string;
+}
+
+export async function chatWithInventory(
+  message: string,
+  context: {
+    items: Array<{ name: string; quantity: number; unit: string; category: string; alert_status?: string; expiry_date?: string | null; cost_per_unit?: number | null; reorder_threshold: number }>;
+    totals: { item_count: number; critical_count: number; warning_count: number; expiring_within_7_days: number };
+    forecast_alerts: Array<{ name: string; days_until_stockout: number; unit: string }>;
+  }
+): Promise<string> {
+  if (process.env.USE_FALLBACK_ONLY === 'true') throw new AiUnavailableError('Fallback mode');
+  try {
+    const model = getClient().getGenerativeModel({ model: MODEL });
+    const systemContext = `You are ShelfSense, a smart green-tech inventory assistant. You help users manage their sustainable inventory.
+
+Current inventory snapshot (${new Date().toISOString().slice(0, 10)}):
+- Total items: ${context.totals.item_count}
+- Critical (needs immediate reorder): ${context.totals.critical_count}
+- Warning (running low): ${context.totals.warning_count}
+- Expiring within 7 days: ${context.totals.expiring_within_7_days}
+
+Items running out soon (forecast alerts):
+${context.forecast_alerts.length ? context.forecast_alerts.map(a => `  • ${a.name}: ~${a.days_until_stockout} day(s) left`).join('\n') : '  None'}
+
+Full inventory (name | qty | unit | category | status):
+${context.items.map(i => `  • ${i.name} | ${i.quantity} ${i.unit} | ${i.category} | ${i.alert_status ?? 'normal'}${i.expiry_date ? ` | expires ${i.expiry_date}` : ''}`).join('\n')}
+
+Answer helpfully, concisely, and in a friendly tone. Focus on sustainability and reducing waste. If asked about suppliers or eco alternatives, mention they can use the Procurement Hub. Keep answers under 200 words.`;
+
+    const result = await model.generateContent(`${systemContext}\n\nUser: ${message}`);
+    return result.response.text().trim();
+  } catch (err) {
+    if (err instanceof AiUnavailableError) throw err;
+    throw new AiUnavailableError(err);
+  }
+}
+
+export async function scanShelfImage(
+  base64Image: string,
+  mimeType: string
+): Promise<ScannedItem[]> {
+  if (process.env.USE_FALLBACK_ONLY === 'true') throw new AiUnavailableError('Fallback mode');
+  try {
+    const model = getClient().getGenerativeModel({ model: MODEL });
+    const prompt = `You are an inventory scanning assistant. Analyze this shelf/storage image and identify all visible items.
+
+For each distinct item you can see, estimate the quantity remaining.
+Return ONLY a valid JSON array (no markdown, no explanation):
+[
+  {
+    "name": "item name",
+    "estimated_quantity": <number>,
+    "unit": "<appropriate unit: kg, L, pcs, boxes, bags, rolls, bottles, cans, etc>",
+    "confidence": "<high|medium|low>",
+    "notes": "<optional: condition or other observation>"
+  }
+]
+
+Be practical — identify items by their common inventory name. If you cannot identify any items, return an empty array [].`;
+
+    const result = await model.generateContent([
+      { inlineData: { mimeType, data: base64Image } },
+      prompt,
+    ]);
+    const parsed = safeJson<ScannedItem[]>(result.response.text());
+    if (!parsed || !Array.isArray(parsed)) throw new Error('Invalid JSON from vision model');
+    return parsed.filter((i) => i.name && typeof i.estimated_quantity === 'number' && i.unit);
+  } catch (err) {
+    if (err instanceof AiUnavailableError) throw err;
+    throw new AiUnavailableError(err);
+  }
+}
+
 export async function suggestSuppliers(
   item: Item,
   mockSuppliers: SupplierSuggestion[]
 ): Promise<SupplierSuggestion[]> {
   if (process.env.USE_FALLBACK_ONLY === 'true') throw new AiUnavailableError('Fallback mode');
-
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-1.5-flash' });
-
+    const model = getClient().getGenerativeModel({ model: MODEL });
     const prompt = `You are a sustainable procurement assistant. Given an inventory item and a list of eco-friendly suppliers, select and rank the top 3 most suitable suppliers.
 
 Item: ${item.name} (category: ${item.category}, unit: ${item.unit})
@@ -98,11 +177,10 @@ Return ONLY a JSON array of the top 3 supplier IDs in order of recommendation:
     const ids = safeJson<string[]>(result.response.text());
     if (!ids || !Array.isArray(ids)) throw new Error('Invalid response');
 
-    const ranked = ids
+    return ids
       .map((id) => mockSuppliers.find((s) => s.id === id))
-      .filter((s): s is SupplierSuggestion => s != null);
-
-    return ranked.slice(0, 3);
+      .filter((s): s is SupplierSuggestion => s != null)
+      .slice(0, 3);
   } catch (err) {
     if (err instanceof AiUnavailableError) throw err;
     throw new AiUnavailableError(err);

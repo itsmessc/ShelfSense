@@ -4,7 +4,8 @@ import { useItems } from '../hooks/useItems.js';
 import { ItemTable } from '../components/inventory/ItemTable.js';
 import { ItemForm, CATEGORIES } from '../components/inventory/ItemForm.js';
 import { UsageLogForm } from '../components/usage/UsageLogForm.js';
-import { exportItems, importItems } from '../api/client.js';
+import { exportItems, importItems, type ScannedItem } from '../api/client.js';
+import { ShelfScanModal } from '../components/inventory/ShelfScanModal.js';
 import type { Item } from '../types/index.js';
 import { ApiError } from '../types/index.js';
 
@@ -40,6 +41,7 @@ export function InventoryPage() {
 
   const [importResult, setImportResult] = useState<{ inserted: number; errors: { row: number; message: string }[] } | null>(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   useEffect(() => {
     fetchItems({
@@ -84,6 +86,28 @@ export function InventoryPage() {
     try { await removeItem(item.id); } catch { alert('Failed to delete item'); }
   }
 
+  async function handleScanConfirm(scannedItems: ScannedItem[]) {
+    setShowScanModal(false);
+    if (scannedItems.length === 0) return;
+    setImportLoading(true);
+    setImportResult(null);
+    try {
+      const rows = scannedItems.map(s => ({
+        name: s.name,
+        quantity: s.estimated_quantity,
+        unit: s.unit,
+        reorder_threshold: 0,
+      }));
+      const result = await importItems(rows);
+      setImportResult(result);
+      if (result.inserted > 0) fetchItems();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImportLoading(false);
+    }
+  }
+
   async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -119,6 +143,11 @@ export function InventoryPage() {
             {importLoading ? 'Importing…' : '⬆ Import CSV'}
           </button>
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCSVImport} />
+          <button
+            onClick={() => setShowScanModal(true)}
+            className="border border-brand-400 text-brand-700 px-3 py-2 rounded-lg text-sm hover:bg-brand-50 font-medium">
+            📷 Scan Shelf
+          </button>
           <button
             onClick={() => { setEditTarget(null); setShowForm(true); setAiCategorized(undefined); }}
             className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
@@ -189,6 +218,13 @@ export function InventoryPage() {
           onClose={() => { setShowForm(false); setEditTarget(null); }}
           isSubmitting={submitting}
           aiCategorized={aiCategorized}
+        />
+      )}
+
+      {showScanModal && (
+        <ShelfScanModal
+          onConfirm={handleScanConfirm}
+          onClose={() => setShowScanModal(false)}
         />
       )}
 

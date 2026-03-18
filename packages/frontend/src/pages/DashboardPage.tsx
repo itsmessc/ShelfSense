@@ -28,7 +28,7 @@ export function DashboardPage() {
   if (error)     return <div className="p-8 text-red-500">Error: {error}</div>;
   if (!data)     return null;
 
-  const { totals, low_stock, expiring_soon, sustainability_score, co2_saved_kg, waste_prevented_items } = data;
+  const { totals, low_stock, expiring_soon, forecast_alerts, sustainability_score, co2_saved_kg, waste_prevented_items } = data;
 
   return (
     <div className="p-8 space-y-6">
@@ -44,6 +44,46 @@ export function DashboardPage() {
         <StatCard label="Warning"           value={totals.warning_count}           color="text-amber-600" sub="watch these items" />
         <StatCard label="Expiring (7 days)" value={totals.expiring_within_7_days}  color="text-orange-600" />
       </div>
+
+      {/* Forecast Alerts */}
+      {forecast_alerts && forecast_alerts.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700">🤖 AI Reorder Alerts</h3>
+            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">⚡ Rule-based forecast</span>
+          </div>
+          <div className="space-y-2">
+            {forecast_alerts.map((alert) => {
+              const urgent = alert.days_until_stockout <= 3;
+              const soon   = alert.days_until_stockout <= 7;
+              const cls = urgent
+                ? 'bg-red-50 border-red-200 text-red-800'
+                : soon
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800';
+              return (
+                <div key={alert.item_id} className={`flex items-center justify-between rounded-xl border px-4 py-3 ${cls}`}>
+                  <div>
+                    <Link to={`/inventory/${alert.item_id}`} className="font-semibold hover:underline text-sm">
+                      {alert.name}
+                    </Link>
+                    <p className="text-xs mt-0.5 opacity-80">
+                      Will run out in <strong>{alert.days_until_stockout} day{alert.days_until_stockout !== 1 ? 's' : ''}</strong>
+                      {' '}· Order by <strong>{alert.recommended_reorder_date}</strong>
+                    </p>
+                  </div>
+                  <Link
+                    to={`/inventory/${alert.item_id}`}
+                    className="text-xs underline opacity-70 hover:opacity-100 ml-4 shrink-0"
+                  >
+                    View →
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Eco impact */}
       <div className="grid grid-cols-2 gap-4">

@@ -61,9 +61,21 @@ export interface UsageHistory {
   forecast: ForecastResult;
 }
 
+export interface ForecastAlert {
+  item_id: number;
+  name: string;
+  unit: string;
+  days_until_stockout: number;
+  predicted_burnout_date: string;
+  recommended_reorder_date: string;
+  confidence: 'low' | 'medium' | 'high';
+  ai_generated: boolean;
+}
+
 export interface DashboardData {
   low_stock: Item[];
   expiring_soon: Array<Item & { days_until_expiry: number }>;
+  forecast_alerts: ForecastAlert[];
   sustainability_score: {
     score: number;
     grade: 'A' | 'B' | 'C' | 'D' | 'F';

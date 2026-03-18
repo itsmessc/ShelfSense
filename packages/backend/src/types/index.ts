@@ -58,9 +58,21 @@ export interface SupplierSuggestion extends Supplier {
   sustainability_score: number; // 0-100
 }
 
+export interface ForecastAlert {
+  item_id: number;
+  name: string;
+  unit: string;
+  days_until_stockout: number;
+  predicted_burnout_date: string;
+  recommended_reorder_date: string;
+  confidence: ForecastResult['confidence'];
+  ai_generated: boolean;
+}
+
 export interface DashboardData {
   low_stock: Item[];
   expiring_soon: Array<Item & { days_until_expiry: number }>;
+  forecast_alerts: ForecastAlert[];
   sustainability_score: SustainabilityScore;
   totals: DashboardTotals;
   co2_saved_kg: number;
@@ -95,3 +107,4 @@ export class AiUnavailableError extends Error {
     this.cause = cause;
   }
 }
+
