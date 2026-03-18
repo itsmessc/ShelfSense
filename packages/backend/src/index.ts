@@ -1,4 +1,11 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env from the monorepo root (two levels up from packages/backend/src/)
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, '../../../.env') });
+
 import { createApp } from './app.js';
 import { getPool } from './db/connection.js';
 import { runMigrations } from './db/migrations.js';

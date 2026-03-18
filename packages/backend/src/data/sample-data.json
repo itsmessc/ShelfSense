@@ -1,162 +1,27 @@
 [
-  {
-    "name": "Organic Rolled Oats",
-    "quantity": 0.5,
-    "unit": "kg",
-    "category": "Grains & Cereals",
-    "expiry_date": "2026-08-01",
-    "reorder_threshold": 1.0
-  },
-  {
-    "name": "Almond Milk Unsweetened",
-    "quantity": 1.2,
-    "unit": "L",
-    "category": "Dairy Alternatives",
-    "expiry_date": "2026-03-22",
-    "reorder_threshold": 1.0
-  },
-  {
-    "name": "Canned Chickpeas",
-    "quantity": 8,
-    "unit": "cans",
-    "category": "Legumes",
-    "expiry_date": "2028-01-01",
-    "reorder_threshold": 2
-  },
-  {
-    "name": "Spinach Leaves",
-    "quantity": 0.15,
-    "unit": "kg",
-    "category": "Produce",
-    "expiry_date": "2026-03-23",
-    "reorder_threshold": 0.3
-  },
-  {
-    "name": "Fair-Trade Coffee Beans",
-    "quantity": 0.3,
-    "unit": "kg",
-    "category": "Beverages",
-    "expiry_date": "2026-09-01",
-    "reorder_threshold": 0.5
-  },
-  {
-    "name": "Brown Rice",
-    "quantity": 3.0,
-    "unit": "kg",
-    "category": "Grains & Cereals",
-    "expiry_date": "2027-06-01",
-    "reorder_threshold": 1.0
-  },
-  {
-    "name": "Coconut Oil",
-    "quantity": 0.4,
-    "unit": "L",
-    "category": "Oils & Fats",
-    "expiry_date": "2027-01-01",
-    "reorder_threshold": 0.3
-  },
-  {
-    "name": "Black Lentils",
-    "quantity": 1.5,
-    "unit": "kg",
-    "category": "Legumes",
-    "expiry_date": "2027-12-01",
-    "reorder_threshold": 0.5
-  },
-  {
-    "name": "Oat Milk",
-    "quantity": 2,
-    "unit": "L",
-    "category": "Dairy Alternatives",
-    "expiry_date": "2026-04-10",
-    "reorder_threshold": 1.0
-  },
-  {
-    "name": "Green Tea Bags",
-    "quantity": 40,
-    "unit": "bags",
-    "category": "Beverages",
-    "expiry_date": "2027-03-01",
-    "reorder_threshold": 10
-  },
-  {
-    "name": "Biodegradable Dish Soap",
-    "quantity": 1,
-    "unit": "bottle",
-    "category": "Cleaning Supplies",
-    "expiry_date": null,
-    "reorder_threshold": 1
-  },
-  {
-    "name": "Recycled Paper Towels",
-    "quantity": 3,
-    "unit": "rolls",
-    "category": "Cleaning Supplies",
-    "expiry_date": null,
-    "reorder_threshold": 2
-  },
-  {
-    "name": "Chia Seeds",
-    "quantity": 0.25,
-    "unit": "kg",
-    "category": "Seeds & Nuts",
-    "expiry_date": "2026-11-01",
-    "reorder_threshold": 0.2
-  },
-  {
-    "name": "Olive Oil Extra Virgin",
-    "quantity": 0.5,
-    "unit": "L",
-    "category": "Oils & Fats",
-    "expiry_date": "2026-12-01",
-    "reorder_threshold": 0.3
-  },
-  {
-    "name": "Canned Tomatoes",
-    "quantity": 12,
-    "unit": "cans",
-    "category": "Produce",
-    "expiry_date": "2028-06-01",
-    "reorder_threshold": 4
-  },
-  {
-    "name": "Quinoa",
-    "quantity": 0.8,
-    "unit": "kg",
-    "category": "Grains & Cereals",
-    "expiry_date": "2027-02-01",
-    "reorder_threshold": 0.5
-  },
-  {
-    "name": "Almond Butter",
-    "quantity": 0.3,
-    "unit": "jar",
-    "category": "Seeds & Nuts",
-    "expiry_date": "2026-07-01",
-    "reorder_threshold": 0.5
-  },
-  {
-    "name": "Kombucha Culture",
-    "quantity": 2,
-    "unit": "jars",
-    "category": "Fermented Goods",
-    "expiry_date": "2026-05-01",
-    "reorder_threshold": 1
-  },
-  {
-    "name": "Whole Wheat Flour",
-    "quantity": 2.0,
-    "unit": "kg",
-    "category": "Grains & Cereals",
-    "expiry_date": "2026-06-01",
-    "reorder_threshold": 1.0
-  },
-  {
-    "name": "Apple Cider Vinegar",
-    "quantity": 0.75,
-    "unit": "L",
-    "category": "Condiments",
-    "expiry_date": "2028-01-01",
-    "reorder_threshold": 0.25
-  }
+  { "name": "Organic Rolled Oats",       "quantity": 0.5,  "unit": "kg",     "category": "Grains & Cereals",    "expiry_date": "2026-08-01", "reorder_threshold": 1.0,  "cost_per_unit": 3.50,  "supplier": "Green Harvest Co.",     "purchase_date": "2026-01-15" },
+  { "name": "Almond Milk Unsweetened",   "quantity": 1.2,  "unit": "L",      "category": "Dairy Alternatives",  "expiry_date": "2026-03-22", "reorder_threshold": 1.0,  "cost_per_unit": 2.20,  "supplier": "Local Dairy Free Ltd.", "purchase_date": "2026-03-10" },
+  { "name": "Canned Chickpeas",          "quantity": 8,    "unit": "cans",   "category": "Legumes",             "expiry_date": "2028-01-01", "reorder_threshold": 2,    "cost_per_unit": 1.10,  "supplier": "Eco Pantry Wholesale",  "purchase_date": "2025-11-01" },
+  { "name": "Spinach Leaves",            "quantity": 0.15, "unit": "kg",     "category": "Produce",             "expiry_date": "2026-03-23", "reorder_threshold": 0.3,  "cost_per_unit": 4.00,  "supplier": "Farm Direct Organics",  "purchase_date": "2026-03-17" },
+  { "name": "Fair-Trade Coffee Beans",   "quantity": 0.3,  "unit": "kg",     "category": "Beverages",           "expiry_date": "2026-09-01", "reorder_threshold": 0.5,  "cost_per_unit": 18.00, "supplier": "Bean & Beyond",         "purchase_date": "2026-02-01" },
+  { "name": "Brown Rice",                "quantity": 3.0,  "unit": "kg",     "category": "Grains & Cereals",    "expiry_date": "2027-06-01", "reorder_threshold": 1.0,  "cost_per_unit": 2.80,  "supplier": "Green Harvest Co.",     "purchase_date": "2025-12-01" },
+  { "name": "Coconut Oil",               "quantity": 0.4,  "unit": "L",      "category": "Oils & Fats",         "expiry_date": "2027-01-01", "reorder_threshold": 0.3,  "cost_per_unit": 9.50,  "supplier": "Tropical Naturals",     "purchase_date": "2025-10-01" },
+  { "name": "Black Lentils",             "quantity": 1.5,  "unit": "kg",     "category": "Legumes",             "expiry_date": "2027-12-01", "reorder_threshold": 0.5,  "cost_per_unit": 3.20,  "supplier": "Eco Pantry Wholesale",  "purchase_date": "2025-09-01" },
+  { "name": "Oat Milk",                  "quantity": 2,    "unit": "L",      "category": "Dairy Alternatives",  "expiry_date": "2026-04-10", "reorder_threshold": 1.0,  "cost_per_unit": 1.90,  "supplier": "Local Dairy Free Ltd.", "purchase_date": "2026-03-01" },
+  { "name": "Green Tea Bags",            "quantity": 40,   "unit": "bags",   "category": "Beverages",           "expiry_date": "2027-03-01", "reorder_threshold": 10,   "cost_per_unit": 0.15,  "supplier": "Zen Tea Imports",       "purchase_date": "2025-08-01" },
+  { "name": "Biodegradable Dish Soap",   "quantity": 1,    "unit": "bottle", "category": "Cleaning Supplies",   "expiry_date": null,         "reorder_threshold": 1,    "cost_per_unit": 5.50,  "supplier": "EcoClean Solutions",    "purchase_date": "2026-01-01" },
+  { "name": "Recycled Paper Towels",     "quantity": 3,    "unit": "rolls",  "category": "Cleaning Supplies",   "expiry_date": null,         "reorder_threshold": 2,    "cost_per_unit": 1.20,  "supplier": "GreenPaper Co.",        "purchase_date": "2026-02-15" },
+  { "name": "Chia Seeds",                "quantity": 0.25, "unit": "kg",     "category": "Seeds & Nuts",        "expiry_date": "2026-11-01", "reorder_threshold": 0.2,  "cost_per_unit": 12.00, "supplier": "Superfoods Direct",     "purchase_date": "2025-11-01" },
+  { "name": "Olive Oil Extra Virgin",    "quantity": 0.5,  "unit": "L",      "category": "Oils & Fats",         "expiry_date": "2026-12-01", "reorder_threshold": 0.3,  "cost_per_unit": 14.00, "supplier": "Mediterranean Imports", "purchase_date": "2025-12-01" },
+  { "name": "Canned Tomatoes",           "quantity": 12,   "unit": "cans",   "category": "Produce",             "expiry_date": "2028-06-01", "reorder_threshold": 4,    "cost_per_unit": 0.95,  "supplier": "Farm Direct Organics",  "purchase_date": "2025-07-01" },
+  { "name": "Quinoa",                    "quantity": 0.8,  "unit": "kg",     "category": "Grains & Cereals",    "expiry_date": "2027-02-01", "reorder_threshold": 0.5,  "cost_per_unit": 7.50,  "supplier": "Andean Grains Ltd.",    "purchase_date": "2025-10-01" },
+  { "name": "Almond Butter",             "quantity": 0.3,  "unit": "jar",    "category": "Seeds & Nuts",        "expiry_date": "2026-07-01", "reorder_threshold": 0.5,  "cost_per_unit": 11.00, "supplier": "Superfoods Direct",     "purchase_date": "2026-01-01" },
+  { "name": "Whole Wheat Flour",         "quantity": 2.0,  "unit": "kg",     "category": "Grains & Cereals",    "expiry_date": "2026-06-01", "reorder_threshold": 1.0,  "cost_per_unit": 2.10,  "supplier": "Green Harvest Co.",     "purchase_date": "2026-01-01" },
+  { "name": "Apple Cider Vinegar",       "quantity": 0.75, "unit": "L",      "category": "Condiments",          "expiry_date": "2028-01-01", "reorder_threshold": 0.25, "cost_per_unit": 6.00,  "supplier": "Orchard Naturals",      "purchase_date": "2025-06-01" },
+  { "name": "Kombucha Culture",          "quantity": 2,    "unit": "jars",   "category": "Fermented Goods",     "expiry_date": "2026-05-01", "reorder_threshold": 1,    "cost_per_unit": 8.00,  "supplier": "Brew Culture Hub",      "purchase_date": "2026-02-01" },
+  { "name": "Nitrile Lab Gloves",        "quantity": 80,   "unit": "pairs",  "category": "Lab & Equipment",     "expiry_date": "2028-01-01", "reorder_threshold": 20,   "cost_per_unit": 0.30,  "supplier": "SafeLab Supplies",      "purchase_date": "2025-09-01" },
+  { "name": "Isopropyl Alcohol 70%",     "quantity": 0.5,  "unit": "L",      "category": "Chemicals",           "expiry_date": "2027-06-01", "reorder_threshold": 0.5,  "cost_per_unit": 4.50,  "supplier": "ChemSafe Direct",       "purchase_date": "2025-11-01" },
+  { "name": "Printer Paper A4",          "quantity": 2,    "unit": "reams",  "category": "Office Supplies",     "expiry_date": null,         "reorder_threshold": 1,    "cost_per_unit": 5.00,  "supplier": "EcoOffice Ltd.",        "purchase_date": "2026-01-01" },
+  { "name": "Whiteboard Markers",        "quantity": 3,    "unit": "packs",  "category": "Office Supplies",     "expiry_date": null,         "reorder_threshold": 2,    "cost_per_unit": 4.20,  "supplier": "EcoOffice Ltd.",        "purchase_date": "2026-02-01" },
+  { "name": "Hand Sanitizer",            "quantity": 0.4,  "unit": "L",      "category": "Chemicals",           "expiry_date": "2026-12-01", "reorder_threshold": 0.5,  "cost_per_unit": 3.80,  "supplier": "CleanTech Bio",         "purchase_date": "2026-01-01" }
 ]

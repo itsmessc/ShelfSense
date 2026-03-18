@@ -1,8 +1,27 @@
 import { Router, type Request, type Response } from 'express';
+import type { RowDataPacket } from 'mysql2';
 import { getPool } from '../db/connection.js';
 import * as svc from '../services/inventoryService.js';
 
 const router = Router();
+
+// GET /api/usage  — recent logs across all items (last 50)
+router.get('/', async (_req: Request, res: Response) => {
+  try {
+    const [rows] = await getPool().execute<RowDataPacket[]>(`
+      SELECT ul.id, ul.item_id, ul.quantity_used, ul.logged_at, ul.notes,
+             i.name AS item_name, i.unit
+      FROM usage_logs ul
+      JOIN items i ON i.id = ul.item_id
+      WHERE i.is_archived = 0
+      ORDER BY ul.logged_at DESC
+      LIMIT 50
+    `);
+    res.json({ data: rows });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch usage logs' });
+  }
+});
 
 // POST /api/usage
 router.post('/', async (req: Request, res: Response) => {

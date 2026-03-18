@@ -1,0 +1,11 @@
+name,quantity,unit,category,expiry_date,reorder_threshold,cost_per_unit,supplier,purchase_date
+Organic Rolled Oats,2.0,kg,Grains & Cereals,2026-08-01,1.0,3.50,Green Harvest Co.,2026-01-15
+Almond Milk Unsweetened,3,L,Dairy Alternatives,2026-06-15,1.0,2.20,Local Dairy Free Ltd.,2026-03-01
+Canned Chickpeas,12,cans,Legumes,2028-01-01,3,1.10,Eco Pantry Wholesale,2025-11-01
+Spinach Leaves,0.5,kg,Produce,2026-04-01,0.3,4.00,Farm Direct Organics,2026-03-17
+Fair-Trade Coffee Beans,1.0,kg,Beverages,2026-09-01,0.5,18.00,Bean & Beyond,2026-02-01
+Nitrile Lab Gloves,100,pairs,Lab & Equipment,2028-01-01,20,0.30,SafeLab Supplies,2025-09-01
+Printer Paper A4,5,reams,Office Supplies,,2,5.00,EcoOffice Ltd.,2026-01-01
+Isopropyl Alcohol 70%,1.0,L,Chemicals,2027-06-01,0.5,4.50,ChemSafe Direct,2025-11-01
+Brown Rice,4.0,kg,Grains & Cereals,2027-06-01,1.0,2.80,Green Harvest Co.,2025-12-01
+Oat Milk,4,L,Dairy Alternatives,2026-05-10,1.0,1.90,Local Dairy Free Ltd.,2026-03-01

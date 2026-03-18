@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { InventoryPage } from './pages/InventoryPage.js';
+import { ItemDetailPage } from './pages/ItemDetailPage.js';
 import { UsagePage } from './pages/UsagePage.js';
+import { ProcurementPage } from './pages/ProcurementPage.js';
 
 export function App() {
   return (
@@ -11,9 +13,11 @@ export function App() {
         <Sidebar />
         <main className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/usage" element={<UsagePage />} />
+            <Route path="/"                  element={<DashboardPage />} />
+            <Route path="/inventory"         element={<InventoryPage />} />
+            <Route path="/inventory/:id"     element={<ItemDetailPage />} />
+            <Route path="/usage"             element={<UsagePage />} />
+            <Route path="/procurement"       element={<ProcurementPage />} />
           </Routes>
         </main>
       </div>

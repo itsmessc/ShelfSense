@@ -1,22 +1,42 @@
 interface Props {
   score: number;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
   label: string;
   breakdown: {
-    items_before_expiry_ratio: number;
+    waste_reduction: number;
     reorder_coverage: number;
+    supplier_diversity: number;
+    cost_tracking: number;
   };
 }
 
-export function SustainabilityScore({ score, label, breakdown }: Props) {
+const GRADE_COLOR: Record<string, { ring: string; text: string }> = {
+  A: { ring: '#16a34a', text: 'text-green-700' },
+  B: { ring: '#22c55e', text: 'text-green-600' },
+  C: { ring: '#f59e0b', text: 'text-amber-600' },
+  D: { ring: '#f97316', text: 'text-orange-600' },
+  F: { ring: '#ef4444', text: 'text-red-600' },
+};
+
+function Bar({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div>
+      <div className="flex justify-between text-xs text-gray-600 mb-1">
+        <span>{label}</span>
+        <span className="font-medium">{value}%</span>
+      </div>
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
+export function SustainabilityScore({ score, grade, label, breakdown }: Props) {
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-
-  const color =
-    score >= 80 ? '#16a34a' : score >= 60 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
-
-  const labelColor =
-    score >= 80 ? 'text-green-700' : score >= 60 ? 'text-green-600' : score >= 40 ? 'text-amber-600' : 'text-red-600';
+  const gc = GRADE_COLOR[grade];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border p-6">
@@ -24,40 +44,28 @@ export function SustainabilityScore({ score, label, breakdown }: Props) {
         Sustainability Score
       </h3>
       <div className="flex items-center gap-6">
-        <svg width="120" height="120" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="10" />
-          <circle
-            cx="50"
-            cy="50"
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth="10"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            transform="rotate(-90 50 50)"
-          />
-          <text x="50" y="45" textAnchor="middle" fontSize="22" fontWeight="bold" fill={color}>
-            {score}
-          </text>
-          <text x="50" y="62" textAnchor="middle" fontSize="10" fill="#6b7280">
-            / 100
-          </text>
-        </svg>
-
-        <div className="flex-1 space-y-3">
-          <div className={`text-lg font-bold ${labelColor}`}>{label}</div>
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex justify-between">
-              <span>Freshness ratio</span>
-              <span className="font-medium">{Math.round(breakdown.items_before_expiry_ratio * 100)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Reorder coverage</span>
-              <span className="font-medium">{Math.round(breakdown.reorder_coverage * 100)}%</span>
-            </div>
+        <div className="relative">
+          <svg width="110" height="110" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="10" />
+            <circle
+              cx="50" cy="50" r={radius} fill="none"
+              stroke={gc.ring} strokeWidth="10"
+              strokeDasharray={circumference} strokeDashoffset={offset}
+              strokeLinecap="round" transform="rotate(-90 50 50)"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className={`text-2xl font-black ${gc.text}`}>{grade}</span>
+            <span className="text-xs text-gray-400">{score}/100</span>
           </div>
+        </div>
+
+        <div className="flex-1 space-y-2.5">
+          <p className={`text-base font-bold ${gc.text}`}>{label}</p>
+          <Bar label="Waste reduction"   value={breakdown.waste_reduction}   color="bg-brand-500" />
+          <Bar label="Reorder coverage"  value={breakdown.reorder_coverage}  color="bg-blue-400" />
+          <Bar label="Supplier diversity"value={breakdown.supplier_diversity} color="bg-purple-400" />
+          <Bar label="Cost tracking"     value={breakdown.cost_tracking}     color="bg-amber-400" />
         </div>
       </div>
     </div>

@@ -1,25 +1,35 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useItems } from '../hooks/useItems.js';
 import { ItemTable } from '../components/inventory/ItemTable.js';
-import { ItemForm } from '../components/inventory/ItemForm.js';
+import { ItemForm, CATEGORIES } from '../components/inventory/ItemForm.js';
 import { UsageLogForm } from '../components/usage/UsageLogForm.js';
+import { exportItems, importItems } from '../api/client.js';
 import type { Item } from '../types/index.js';
 import { ApiError } from '../types/index.js';
 
-const CATEGORIES = [
-  'All', 'Grains & Cereals', 'Dairy Alternatives', 'Produce', 'Legumes',
-  'Beverages', 'Oils & Fats', 'Seeds & Nuts', 'Cleaning Supplies',
-  'Condiments', 'Fermented Goods', 'Other',
-];
+function parseCSV(text: string): Array<Record<string, string>> {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map((h) => h.trim());
+  return lines.slice(1).map((line) => {
+    const vals = line.split(',').map((v) => v.trim());
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => { obj[h] = vals[i] ?? ''; });
+    return obj;
+  });
+}
 
 export function InventoryPage() {
   const { items, isLoading, error, fetchItems, addItem, editItem, removeItem } = useItems();
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [lowStockOnly, setLowStockOnly] = useState(searchParams.get('low_stock') === 'true');
+  const [status, setStatus] = useState('All');
+  const [sortKey, setSortKey] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Item | null>(null);
@@ -28,15 +38,29 @@ export function InventoryPage() {
   const [formError, setFormError] = useState('');
   const [aiCategorized, setAiCategorized] = useState<boolean | undefined>(undefined);
 
+  const [importResult, setImportResult] = useState<{ inserted: number; errors: { row: number; message: string }[] } | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+
   useEffect(() => {
     fetchItems({
       search: search || undefined,
       category: category !== 'All' ? category : undefined,
-      low_stock: lowStockOnly || undefined,
+      status: status !== 'All' ? (status as 'critical' | 'warning' | 'normal') : undefined,
+      sort: sortKey,
+      order: sortOrder,
     });
-  }, [search, category, lowStockOnly, fetchItems]);
+  }, [search, category, status, sortKey, sortOrder, fetchItems]);
 
-  async function handleSubmit(data: Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days'>) {
+  function handleSort(key: string) {
+    if (key === sortKey) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortOrder('asc');
+    }
+  }
+
+  async function handleSubmit(data: Omit<Item, 'id' | 'created_at' | 'updated_at' | 'forecast_days' | 'alert_status' | 'is_archived'>) {
     setSubmitting(true);
     setFormError('');
     try {
@@ -56,54 +80,83 @@ export function InventoryPage() {
   }
 
   async function handleDelete(item: Item) {
-    if (!confirm(`Delete "${item.name}"?`)) return;
+    if (!confirm(`Archive "${item.name}"? It will be hidden from inventory.`)) return;
+    try { await removeItem(item.id); } catch { alert('Failed to delete item'); }
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportLoading(true);
+    setImportResult(null);
     try {
-      await removeItem(item.id);
-    } catch {
-      alert('Failed to delete item');
+      const text = await file.text();
+      const rows = parseCSV(text);
+      const result = await importItems(rows);
+      setImportResult(result);
+      if (result.inserted > 0) fetchItems();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImportLoading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
   }
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
           <p className="text-sm text-gray-500 mt-1">{items.length} item{items.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={() => { setEditTarget(null); setShowForm(true); setAiCategorized(undefined); }}
-          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-        >
-          + Add Item
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => exportItems()} className="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50">
+            ⬇ Export JSON
+          </button>
+          <button onClick={() => fileRef.current?.click()} disabled={importLoading}
+            className="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50">
+            {importLoading ? 'Importing…' : '⬆ Import CSV'}
+          </button>
+          <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCSVImport} />
+          <button
+            onClick={() => { setEditTarget(null); setShowForm(true); setAiCategorized(undefined); }}
+            className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
+            + Add Item
+          </button>
+        </div>
       </div>
+
+      {/* Import result banner */}
+      {importResult && (
+        <div className={`rounded-lg px-4 py-3 text-sm ${importResult.errors.length === 0 ? 'bg-brand-50 border border-brand-200 text-brand-700' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+          ✓ Imported {importResult.inserted} item{importResult.inserted !== 1 ? 's' : ''}.
+          {importResult.errors.length > 0 && (
+            <span> {importResult.errors.length} row{importResult.errors.length !== 1 ? 's' : ''} failed: {importResult.errors[0].message}</span>
+          )}
+          <button onClick={() => setImportResult(null)} className="ml-2 underline text-xs">Dismiss</button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search items..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-56"
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-        >
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search items…"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-52" />
+
+        <select value={category} onChange={(e) => setCategory(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option>All</option>
           {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
         </select>
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={lowStockOnly}
-            onChange={(e) => setLowStockOnly(e.target.checked)}
-            className="rounded"
-          />
-          Low stock only
-        </label>
+
+        <select value={status} onChange={(e) => setStatus(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option>All</option>
+          <option value="critical">🔴 Critical</option>
+          <option value="warning">🟡 Warning</option>
+          <option value="normal">🟢 Normal</option>
+        </select>
       </div>
 
       {formError && (
@@ -112,7 +165,7 @@ export function InventoryPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border p-6">
         {isLoading ? (
-          <div className="text-center py-12 text-gray-400">Loading...</div>
+          <div className="text-center py-12 text-gray-400">Loading…</div>
         ) : error ? (
           <div className="text-center py-12 text-red-500">{error}</div>
         ) : (
@@ -121,6 +174,10 @@ export function InventoryPage() {
             onEdit={(item) => { setEditTarget(item); setShowForm(true); }}
             onDelete={handleDelete}
             onLogUsage={(item) => setUsageTarget(item)}
+            onViewDetail={(item) => navigate(`/inventory/${item.id}`)}
+            sortKey={sortKey}
+            sortOrder={sortOrder}
+            onSort={handleSort}
           />
         )}
       </div>
@@ -141,7 +198,7 @@ export function InventoryPage() {
             <UsageLogForm
               items={items}
               preselectedItem={usageTarget}
-              onSuccess={() => { fetchItems(); }}
+              onSuccess={() => { fetchItems(); setUsageTarget(null); }}
               onClose={() => setUsageTarget(null)}
             />
           </div>
