@@ -32,11 +32,35 @@ const ENTITY_LABELS: Record<string, string> = {
 };
 
 function timeAgo(isoDate: string): string {
-  const diff = (Date.now() - new Date(isoDate).getTime()) / 1000;
-  if (diff < 60)    return `${Math.round(diff)}s ago`;
-  if (diff < 3600)  return `${Math.round(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.round(diff / 3600)}h ago`;
-  return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!isoDate) return '—';
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diff = (now.getTime() - date.getTime()) / 1000;
+  
+  if (diff < 10) return 'Just now';
+  
+  if (diff < 60) {
+    const s = Math.round(diff);
+    return `${s} ${s === 1 ? 'sec' : 'secs'} ago`;
+  }
+  if (diff < 3600) {
+    const m = Math.round(diff / 60);
+    return `${m} ${m === 1 ? 'min' : 'min'} ago`;
+  }
+  if (diff < 86400) {
+    const h = Math.round(diff / 3600);
+    return `${h} ${h === 1 ? 'hour' : 'hours'} ago`;
+  }
+  if (diff < 2592000) { // < 30 days
+    const d = Math.round(diff / 86400);
+    return `${d} ${d === 1 ? 'day' : 'days'} ago`;
+  }
+  
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
 }
 
 export function AuditPage() {
