@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getAnalytics, type AnalyticsData } from '../api/client.js';
+import { getDashboard } from '../api/dashboard.js';
+import { downloadSustainabilityReport } from '../utils/pdfReport.js';
+import type { DashboardData } from '../types/index.js';
 
 function HBar({ label, value, max, color, sub }: { label: string; value: number; max: number; color: string; sub?: string }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
@@ -27,13 +30,14 @@ function StatCard({ label, value, sub, color = 'text-gray-900' }: { label: strin
 }
 
 export function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [data,      setData]      = useState<AnalyticsData | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState('');
 
   useEffect(() => {
-    getAnalytics()
-      .then(setData)
+    Promise.all([getAnalytics(), getDashboard()])
+      .then(([a, d]) => { setData(a); setDashboard(d); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -59,9 +63,19 @@ export function AnalyticsPage() {
 
   return (
     <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">📈 Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1">Inventory value, usage trends, and category insights</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">📈 Analytics</h1>
+          <p className="text-sm text-gray-500 mt-1">Inventory value, usage trends, and category insights</p>
+        </div>
+        {dashboard && (
+          <button
+            onClick={() => downloadSustainabilityReport(dashboard, data!)}
+            className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 flex items-center gap-2"
+          >
+            📄 Download PDF Report
+          </button>
+        )}
       </div>
 
       {/* KPIs */}

@@ -1,28 +1,30 @@
-import type { Pool, RowDataPacket } from 'mysql2/promise';
-import type { UsageLog, ForecastResult } from '../types/index.js';
+/**
+ * Forecast Service — AI-powered stockout forecasting with rule-based fallback.
+ */
+import type { Pool } from 'mysql2/promise';
+import type { ForecastResult } from '../types/index.js';
 import { AiUnavailableError } from '../types/index.js';
-import * as aiService from './aiService.js';
+import * as usageRepo from '../repositories/usageRepository.js';
+import { getItemById } from './itemService.js';
+import * as ai from './ai/aiOrchestrator.js';
 import * as fallback from './fallbackService.js';
-import { getItemById } from './inventoryService.js';
 
-export async function generateForecast(pool: Pool, itemId: number): Promise<ForecastResult & { item_id: number }> {
+export async function generateForecast(
+  pool: Pool,
+  itemId: number,
+): Promise<ForecastResult & { item_id: number }> {
   const item = await getItemById(pool, itemId);
   if (!item) throw new Error('Item not found');
 
-  const [rows] = await pool.execute<RowDataPacket[]>(
-    `SELECT * FROM usage_logs
-     WHERE item_id = ? AND logged_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-     ORDER BY logged_at ASC`,
-    [itemId]
-  );
-  const logs = rows as UsageLog[];
+  const logs = await usageRepo.findByItemRange(pool, 30);
+  const itemLogs = logs.filter((l) => l.item_id === itemId);
 
   let forecast: ForecastResult;
   try {
-    forecast = await aiService.forecastStockout(item, logs);
+    forecast = await ai.forecastStockout(item, itemLogs);
   } catch (err) {
     if (err instanceof AiUnavailableError) {
-      forecast = fallback.forecastStockout(item, logs);
+      forecast = fallback.forecastStockout(item, itemLogs);
     } else {
       throw err;
     }

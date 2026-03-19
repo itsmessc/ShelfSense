@@ -9,6 +9,9 @@ interface Props {
   sortKey?: string;
   sortOrder?: 'asc' | 'desc';
   onSort?: (key: string) => void;
+  selectedIds?: Set<number>;
+  onToggleSelect?: (id: number) => void;
+  onToggleAll?: (allIds: number[]) => void;
 }
 
 const STATUS_CONFIG: Record<AlertStatus, { label: string; cls: string }> = {
@@ -36,7 +39,10 @@ function SortBtn({ col, current, order, onSort }: { col: string; current?: strin
   );
 }
 
-export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, sortKey, sortOrder, onSort }: Props) {
+export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, sortKey, sortOrder, onSort, selectedIds, onToggleSelect, onToggleAll }: Props) {
+  const hasBulk   = !!onToggleSelect;
+  const allSelected = hasBulk && items.length > 0 && items.every((i) => selectedIds?.has(i.id));
+
   if (items.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -52,6 +58,16 @@ export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, s
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left text-gray-500 text-xs uppercase tracking-wide">
+            {hasBulk && (
+              <th className="pb-3 pr-3 w-8">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => onToggleAll?.(items.map((i) => i.id))}
+                  className="rounded border-gray-300"
+                />
+              </th>
+            )}
             <th className="pb-3 pr-4 font-medium">
               Name <SortBtn col="name" current={sortKey} order={sortOrder} onSort={onSort} />
             </th>
@@ -69,10 +85,21 @@ export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, s
         </thead>
         <tbody className="divide-y divide-gray-100">
           {items.map((item) => {
-            const status = item.alert_status ?? 'normal';
-            const sc = STATUS_CONFIG[status];
+            const status  = item.alert_status ?? 'normal';
+            const sc      = STATUS_CONFIG[status];
+            const checked = selectedIds?.has(item.id) ?? false;
             return (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={item.id} className={`hover:bg-gray-50 transition-colors ${checked ? 'bg-brand-50' : ''}`}>
+                {hasBulk && (
+                  <td className="py-3 pr-3">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => onToggleSelect?.(item.id)}
+                      className="rounded border-gray-300"
+                    />
+                  </td>
+                )}
                 <td className="py-3 pr-4">
                   <button
                     onClick={() => onViewDetail(item)}

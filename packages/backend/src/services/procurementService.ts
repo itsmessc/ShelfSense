@@ -1,13 +1,16 @@
+/**
+ * Procurement Service — AI-ranked eco-supplier suggestions.
+ */
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import type { Pool } from 'mysql2/promise';
 import type { Supplier, SupplierSuggestion } from '../types/index.js';
 import { AiUnavailableError } from '../types/index.js';
-import * as aiService from './aiService.js';
-import { getItemById } from './inventoryService.js';
+import { getItemById } from './itemService.js';
+import * as ai from './ai/aiOrchestrator.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname    = path.dirname(fileURLToPath(import.meta.url));
 const suppliersPath = path.resolve(__dirname, '../data/sample-suppliers.json');
 const allSuppliers: Supplier[] = JSON.parse(fs.readFileSync(suppliersPath, 'utf-8'));
 
@@ -26,30 +29,24 @@ function enrichSupplier(s: Supplier, currentCostPerUnit?: number | null): Suppli
 
   if (currentCostPerUnit != null && currentCostPerUnit > 0) {
     const diff = ((s.price_per_unit - currentCostPerUnit) / currentCostPerUnit) * 100;
-    cost_diff_pct = Number(diff.toFixed(1));
-    cost_comparison = diff < -2 ? 'cheaper' : diff > 2 ? 'more_expensive' : 'same';
+    cost_diff_pct    = Number(diff.toFixed(1));
+    cost_comparison  = diff < -2 ? 'cheaper' : diff > 2 ? 'more_expensive' : 'same';
   }
 
-  return {
-    ...s,
-    cost_comparison,
-    cost_diff_pct,
-    sustainability_score: computeSustainabilityScore(s),
-  };
+  return { ...s, cost_comparison, cost_diff_pct, sustainability_score: computeSustainabilityScore(s) };
 }
 
 function fallbackSuggest(category: string, currentCostPerUnit?: number | null): SupplierSuggestion[] {
-  const matching = allSuppliers
+  return allSuppliers
     .filter((s) => s.categories.includes(category))
     .map((s) => enrichSupplier(s, currentCostPerUnit))
-    .sort((a, b) => b.sustainability_score - a.sustainability_score);
-
-  return matching.slice(0, 3);
+    .sort((a, b) => b.sustainability_score - a.sustainability_score)
+    .slice(0, 3);
 }
 
 export async function getSupplierSuggestions(
   pool: Pool,
-  itemId: number
+  itemId: number,
 ): Promise<{ suggestions: SupplierSuggestion[]; ai_generated: boolean }> {
   const item = await getItemById(pool, itemId);
   if (!item) throw new Error('Item not found');
@@ -59,7 +56,6 @@ export async function getSupplierSuggestions(
     .map((s) => enrichSupplier(s, item.cost_per_unit));
 
   if (candidates.length === 0) {
-    // No category match — return top-ranked across all
     const all = allSuppliers
       .map((s) => enrichSupplier(s, item.cost_per_unit))
       .sort((a, b) => b.sustainability_score - a.sustainability_score)
@@ -68,7 +64,7 @@ export async function getSupplierSuggestions(
   }
 
   try {
-    const aiRanked = await aiService.suggestSuppliers(item, candidates);
+    const aiRanked = await ai.suggestSuppliers(item, candidates);
     return { suggestions: aiRanked, ai_generated: true };
   } catch (err) {
     if (err instanceof AiUnavailableError) {

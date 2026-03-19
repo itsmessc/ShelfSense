@@ -1,3 +1,6 @@
+/**
+ * Fallback Service — rule-based algorithms used when AI is unavailable.
+ */
 import type { Item, UsageLog, ForecastResult } from '../types/index.js';
 
 const KEYWORD_MAP: Array<{ keywords: string[]; category: string }> = [
@@ -28,9 +31,12 @@ export function buildForecastResult(
   days: number | null,
   confidence: ForecastResult['confidence'],
   aiGenerated: boolean,
-  reasoning?: string
+  reasoning?: string,
+  aiProvider?: ForecastResult['ai_provider'],
 ): ForecastResult {
-  const confidenceScore = aiGenerated ? 0.85 : confidence === 'high' ? 0.75 : confidence === 'medium' ? 0.65 : 0.50;
+  const confidenceScore = aiGenerated
+    ? 0.85
+    : confidence === 'high' ? 0.75 : confidence === 'medium' ? 0.65 : 0.50;
 
   const burnout = days != null
     ? new Date(Date.now() + days * 86400000).toISOString().slice(0, 10)
@@ -46,10 +52,11 @@ export function buildForecastResult(
     confidence_score: confidenceScore,
     reasoning,
     ai_generated: aiGenerated,
+    ai_provider: aiProvider ?? null,
     fallback_method: aiGenerated ? null : 'rule-based-average',
     predicted_burnout_date: burnout,
     recommended_reorder_date: reorderDate,
-    recommended_reorder_quantity: null, // set by caller if needed
+    recommended_reorder_quantity: null,
   };
 }
 
@@ -59,10 +66,10 @@ export function forecastStockout(item: Item, logs: UsageLog[]): ForecastResult {
   }
 
   const totalUsed = logs.reduce((sum, l) => sum + Number(l.quantity_used), 0);
-  const earliest = new Date(logs[0].logged_at).getTime();
-  const latest = new Date(logs[logs.length - 1].logged_at).getTime();
-  const daySpan = Math.max((latest - earliest) / 86400000, 1);
-  const avgDaily = totalUsed / daySpan;
+  const earliest  = new Date(logs[0].logged_at).getTime();
+  const latest    = new Date(logs[logs.length - 1].logged_at).getTime();
+  const daySpan   = Math.max((latest - earliest) / 86400000, 1);
+  const avgDaily  = totalUsed / daySpan;
 
   if (avgDaily <= 0) {
     return buildForecastResult(null, 'low', false, 'Average daily usage is zero');
@@ -76,14 +83,13 @@ export function forecastStockout(item: Item, logs: UsageLog[]): ForecastResult {
     days,
     confidence,
     false,
-    `Based on ${logs.length} usage records averaging ${avgDaily.toFixed(3)} ${item.unit}/day`
+    `Based on ${logs.length} usage records averaging ${avgDaily.toFixed(3)} ${item.unit}/day`,
   );
 
-  // Recommend reorder quantity: enough for 2× the reorder threshold
   result.recommended_reorder_quantity =
     Number(item.reorder_threshold) > 0
       ? Number(item.reorder_threshold) * 2
-      : Math.round(avgDaily * 14); // 2-week supply
+      : Math.round(avgDaily * 14);
 
   return result;
 }

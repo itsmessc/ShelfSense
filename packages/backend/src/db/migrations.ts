@@ -31,6 +31,19 @@ export async function runMigrations(pool: mysql.Pool): Promise<void> {
     )
   `);
 
+  // Audit log for all inventory actions
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      entity_type VARCHAR(50)  NOT NULL,
+      entity_id   INT          NULL,
+      action      VARCHAR(50)  NOT NULL,
+      summary     VARCHAR(500) NOT NULL,
+      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_created_at (created_at DESC)
+    )
+  `);
+
   // Add new columns to existing installations (idempotent)
   const alterColumns: Array<[string, string]> = [
     ['cost_per_unit',  'ALTER TABLE items ADD COLUMN cost_per_unit  DECIMAL(10,2)     AFTER reorder_threshold'],

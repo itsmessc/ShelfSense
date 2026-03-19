@@ -32,6 +32,7 @@ export interface ForecastResult {
   confidence_score: number;
   reasoning?: string;
   ai_generated: boolean;
+  ai_provider: 'gemini' | 'openai' | null;
   fallback_method: 'rule-based-average' | null;
   predicted_burnout_date: string | null;
   recommended_reorder_date: string | null;
