@@ -170,7 +170,7 @@ export function InventoryPage() {
     if (scannedItems.length === 0) return;
     setImportLoading(true); setImportResult(null);
     try {
-      const rows = scannedItems.map(s => ({ name: s.name, quantity: s.estimated_quantity, unit: s.unit, reorder_threshold: 0 }));
+      const rows = scannedItems.map(s => ({ name: s.name, quantity: s.estimated_quantity, unit: s.unit, reorder_threshold: 0, expiry_date: s.expiry_date ?? null }));
       const result = await importItems(rows);
       setImportResult(result);
       if (result.inserted > 0) fetchItems();

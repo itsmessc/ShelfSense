@@ -52,15 +52,14 @@ export async function findByItemId(pool: Pool, itemId: number): Promise<UsageLog
 }
 
 export async function findRecent(pool: Pool, limit = 50): Promise<RecentLog[]> {
-  const [rows] = await pool.execute<RowDataPacket[]>(
+  const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT ul.id, ul.item_id, ul.quantity_used, ul.logged_at, ul.notes,
             i.name AS item_name, i.unit
      FROM usage_logs ul
      JOIN items i ON i.id = ul.item_id
      WHERE i.is_archived = 0
      ORDER BY ul.logged_at DESC
-     LIMIT ?`,
-    [limit],
+     LIMIT ${Number(limit)}`,
   );
   return rows as RecentLog[];
 }

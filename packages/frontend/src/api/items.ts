@@ -16,6 +16,7 @@ export interface ScannedItem {
   unit: string;
   confidence: 'high' | 'medium' | 'low';
   notes?: string;
+  expiry_date?: string | null;
 }
 
 export async function getItems(filters?: ItemFilters): Promise<{ data: Item[]; total: number }> {

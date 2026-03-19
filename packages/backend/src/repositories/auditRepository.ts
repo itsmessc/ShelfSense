@@ -24,7 +24,7 @@ export async function logAction(
 
 export async function findRecent(pool: Pool, limit = 100): Promise<AuditEntry[]> {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ${Number(limit)}`,
+    `SELECT id, entity_type, entity_id, action, summary, created_at FROM audit_logs ORDER BY created_at DESC LIMIT ${Number(limit)}`,
   );
   return rows as AuditEntry[];
 }
