@@ -237,76 +237,112 @@ export function InventoryPage() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-end justify-between flex-wrap gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
-          <p className="text-sm text-gray-500 mt-1">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Inventory</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-500" />
+            {items.length} active item{items.length !== 1 ? 's' : ''} in stock
+          </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => exportCSVTemplate()} className="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50">
-            📄 CSV Template
-          </button>
-          <button onClick={() => exportItems()} className="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50">
-            ⬇ Export JSON
-          </button>
-          <button onClick={() => fileRef.current?.click()} disabled={importLoading}
-            className="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50">
-            {importLoading ? 'Importing…' : '⬆ Import CSV'}
-          </button>
+        <div className="flex gap-2.5 flex-wrap">
+          <div className="flex bg-white rounded-xl shadow-sm border p-1">
+            <button onClick={() => exportCSVTemplate()} className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              📄 Template
+            </button>
+            <div className="w-px h-4 my-auto bg-gray-200" />
+            <button onClick={() => exportItems()} className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              ⬇ Export
+            </button>
+            <div className="w-px h-4 my-auto bg-gray-200" />
+            <button onClick={() => fileRef.current?.click()} disabled={importLoading}
+              className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50">
+              {importLoading ? 'Importing…' : '⬆ Import'}
+            </button>
+          </div>
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCSVFileSelect} />
+          
           <button onClick={() => setShowScanModal(true)}
-            className="border border-brand-400 text-brand-700 px-3 py-2 rounded-lg text-sm hover:bg-brand-50 font-medium">
-            📷 Scan Shelf
+            className="bg-white border border-brand-200 text-brand-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-50 transition-all shadow-sm flex items-center gap-2">
+            <span>📷</span> Scan Shelf
           </button>
+          
           <button
             onClick={() => { setEditTarget(null); setShowForm(true); setAiCategorized(undefined); }}
-            className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
-            + Add Item
+            className="bg-brand-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-200 flex items-center gap-2">
+            <span>+</span> Add Item
           </button>
         </div>
       </div>
 
       {/* Import result banner */}
       {importResult && (
-        <div className={`rounded-lg px-4 py-3 text-sm ${importResult.errors.length === 0 ? 'bg-brand-50 border border-brand-200 text-brand-700' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
-          ✓ Imported {importResult.inserted} item{importResult.inserted !== 1 ? 's' : ''}.
-          {importResult.errors.length > 0 && (
-            <span> {importResult.errors.length} row{importResult.errors.length !== 1 ? 's' : ''} failed: {importResult.errors[0].message}</span>
-          )}
-          <button onClick={() => setImportResult(null)} className="ml-2 underline text-xs">Dismiss</button>
+        <div className={`rounded-2xl px-6 py-4 text-sm font-medium shadow-sm border ${importResult.errors.length === 0 ? 'bg-brand-50 border-brand-200 text-brand-800' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">{importResult.errors.length === 0 ? '✅' : '⚠️'}</span>
+              <span>
+                Imported <strong>{importResult.inserted}</strong> item{importResult.inserted !== 1 ? 's' : ''}.
+                {importResult.errors.length > 0 && (
+                  <span className="ml-1 opacity-80">({importResult.errors.length} failed: {importResult.errors[0].message})</span>
+                )}
+              </span>
+            </div>
+            <button onClick={() => setImportResult(null)} className="text-xs font-bold hover:underline opacity-60">Dismiss</button>
+          </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search items…"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-52" />
-        <select value={category} onChange={(e) => setCategory(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <option>All</option>
-          {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <option>All</option>
-          <option value="critical">🔴 Critical</option>
-          <option value="warning">🟡 Warning</option>
-          <option value="normal">🟢 Normal</option>
-        </select>
+      {/* Filters & Search */}
+      <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border">
+        <div className="relative flex-1 min-w-[240px]">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, supplier or category…"
+            className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-all" />
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-2">Category</span>
+          <select value={category} onChange={(e) => setCategory(e.target.value)}
+            className="bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer min-w-[140px]">
+            <option>All</option>
+            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-2">Status</span>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}
+            className="bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer min-w-[140px]">
+            <option>All</option>
+            <option value="critical">🔴 Critical</option>
+            <option value="warning">🟡 Warning</option>
+            <option value="normal">🟢 Normal</option>
+          </select>
+        </div>
       </div>
 
       {formError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700">{formError}</div>
+        <div className="bg-red-50 border border-red-100 rounded-2xl px-6 py-3 text-sm font-bold text-red-700 shadow-sm flex items-center gap-3">
+          <span>❌</span> {formError}
+        </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border p-6">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <div className="text-center py-12 text-gray-400">Loading…</div>
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+            <p className="text-sm font-bold text-gray-400 animate-pulse">Fetching inventory...</p>
+          </div>
         ) : error ? (
-          <div className="text-center py-12 text-red-500">{error}</div>
+          <div className="text-center py-24">
+            <span className="text-4xl">😵</span>
+            <p className="text-red-500 font-bold mt-4">{error}</p>
+            <button onClick={() => fetchItems()} className="mt-4 text-brand-600 font-bold text-sm hover:underline">Try Again</button>
+          </div>
         ) : (
           <ItemTable
             items={items}

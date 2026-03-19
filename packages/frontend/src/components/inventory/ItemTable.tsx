@@ -27,7 +27,14 @@ function ExpiryBadge({ expiry_date }: { expiry_date: string | null }) {
   if (days <= 3) return <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d</span>;
   if (days <= 7) return <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{days}d</span>;
   if (days <= 30) return <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">{days}d</span>;
-  return <span className="text-xs text-gray-500">{expiry_date}</span>;
+  
+  const formatted = new Intl.DateTimeFormat('en-US', { 
+    month: 'short', 
+    day: '2-digit', 
+    year: 'numeric' 
+  }).format(new Date(expiry_date));
+  
+  return <span className="text-xs text-gray-500">{formatted}</span>;
 }
 
 function SortBtn({ col, current, order, onSort }: { col: string; current?: string; order?: string; onSort?: (k: string) => void }) {
@@ -56,31 +63,37 @@ export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, s
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-gray-500 text-xs uppercase tracking-wide">
+        <thead className="bg-gray-50/50">
+          <tr className="border-b text-left text-gray-500 text-[11px] font-bold uppercase tracking-wider">
             {hasBulk && (
-              <th className="pb-3 pr-3 w-8">
+              <th className="py-4 pl-6 pr-3 w-8">
                 <input
                   type="checkbox"
                   checked={allSelected}
                   onChange={() => onToggleAll?.(items.map((i) => i.id))}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4"
                 />
               </th>
             )}
-            <th className="pb-3 pr-4 font-medium">
-              Name <SortBtn col="name" current={sortKey} order={sortOrder} onSort={onSort} />
+            <th className="py-4 pr-4 min-w-[150px]">
+              <div className="flex items-center">
+                Name <SortBtn col="name" current={sortKey} order={sortOrder} onSort={onSort} />
+              </div>
             </th>
-            <th className="pb-3 pr-4 font-medium">Status</th>
-            <th className="pb-3 pr-4 font-medium">Category</th>
-            <th className="pb-3 pr-4 font-medium">
-              Quantity <SortBtn col="quantity" current={sortKey} order={sortOrder} onSort={onSort} />
+            <th className="py-4 pr-4">Status</th>
+            <th className="py-4 pr-4">Category</th>
+            <th className="py-4 pr-4">
+              <div className="flex items-center">
+                Qty <SortBtn col="quantity" current={sortKey} order={sortOrder} onSort={onSort} />
+              </div>
             </th>
-            <th className="pb-3 pr-4 font-medium">
-              Expiry <SortBtn col="expiry_date" current={sortKey} order={sortOrder} onSort={onSort} />
+            <th className="py-4 pr-4">
+              <div className="flex items-center">
+                Expiry <SortBtn col="expiry_date" current={sortKey} order={sortOrder} onSort={onSort} />
+              </div>
             </th>
-            <th className="pb-3 pr-4 font-medium">Supplier</th>
-            <th className="pb-3 font-medium">Actions</th>
+            <th className="py-4 pr-4">Supplier</th>
+            <th className="py-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -89,47 +102,62 @@ export function ItemTable({ items, onEdit, onDelete, onLogUsage, onViewDetail, s
             const sc      = STATUS_CONFIG[status];
             const checked = selectedIds?.has(item.id) ?? false;
             return (
-              <tr key={item.id} className={`hover:bg-gray-50 transition-colors ${checked ? 'bg-brand-50' : ''}`}>
+              <tr key={item.id} className={`group hover:bg-brand-50/30 transition-all duration-150 ${checked ? 'bg-brand-50' : ''}`}>
                 {hasBulk && (
-                  <td className="py-3 pr-3">
+                  <td className="py-4 pl-6 pr-3">
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => onToggleSelect?.(item.id)}
-                      className="rounded border-gray-300"
+                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4"
                     />
                   </td>
                 )}
-                <td className="py-3 pr-4">
+                <td className="py-4 pr-4 max-w-[200px]">
                   <button
                     onClick={() => onViewDetail(item)}
-                    className="font-medium text-gray-900 hover:text-brand-700 text-left"
+                    title={item.name}
+                    className="font-semibold text-gray-900 hover:text-brand-700 text-left block truncate w-full transition-colors"
                   >
                     {item.name}
                   </button>
                   {item.cost_per_unit != null && (
-                    <p className="text-xs text-gray-400">${Number(item.cost_per_unit).toFixed(2)}/{item.unit}</p>
+                    <p className="text-[10px] font-medium text-gray-400 mt-0.5">${Number(item.cost_per_unit).toFixed(2)}/{item.unit}</p>
                   )}
                 </td>
-                <td className="py-3 pr-4">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${sc.cls}`}>{sc.label}</span>
+                <td className="py-4 pr-4">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm ${sc.cls}`}>
+                    {sc.label}
+                  </span>
                 </td>
-                <td className="py-3 pr-4">
-                  <span className="bg-brand-100 text-brand-700 text-xs px-2 py-0.5 rounded-full">{item.category}</span>
+                <td className="py-4 pr-4">
+                  <span className="bg-white border border-brand-100 text-brand-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm truncate max-w-[100px] inline-block">
+                    {item.category}
+                  </span>
                 </td>
-                <td className="py-3 pr-4 text-gray-700">
-                  {Number(item.quantity).toLocaleString()} {item.unit}
+                <td className="py-4 pr-4 text-gray-700 font-medium whitespace-nowrap">
+                  {Number(item.quantity).toLocaleString()} <span className="text-gray-400 text-[10px] uppercase">{item.unit}</span>
                   {Number(item.reorder_threshold) > 0 && (
-                    <span className="text-xs text-gray-400 ml-1">(min {Number(item.reorder_threshold)})</span>
+                    <p className="text-[10px] text-gray-400 font-normal">min {Number(item.reorder_threshold)}</p>
                   )}
                 </td>
-                <td className="py-3 pr-4"><ExpiryBadge expiry_date={item.expiry_date} /></td>
-                <td className="py-3 pr-4 text-xs text-gray-500 truncate max-w-[120px]">{item.supplier ?? '—'}</td>
-                <td className="py-3">
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => onLogUsage(item)} className="text-xs text-brand-600 hover:text-brand-800 font-medium">Use</button>
-                    <button onClick={() => onEdit(item)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                    <button onClick={() => onDelete(item)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                <td className="py-4 pr-4 whitespace-nowrap"><ExpiryBadge expiry_date={item.expiry_date} /></td>
+                <td className="py-4 pr-4 text-[11px] text-gray-500 italic max-w-[120px]">
+                  <div className="truncate" title={item.supplier ?? ''}>
+                    {item.supplier ?? '—'}
+                  </div>
+                </td>
+                <td className="py-4 pr-6">
+                  <div className="flex gap-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button onClick={() => onLogUsage(item)} className="p-1.5 text-brand-600 hover:bg-brand-100 rounded-lg transition-colors" title="Log Usage">
+                      📝
+                    </button>
+                    <button onClick={() => onEdit(item)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
+                      ✏️
+                    </button>
+                    <button onClick={() => onDelete(item)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors" title="Delete">
+                      🗑️
+                    </button>
                   </div>
                 </td>
               </tr>

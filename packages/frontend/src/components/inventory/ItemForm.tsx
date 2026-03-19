@@ -104,69 +104,158 @@ export function ItemForm({ item, onSubmit, onClose, isSubmitting, aiCategorized 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg my-4">
-        <div className="px-6 py-4 border-b flex items-center justify-between">
-          <h2 className="text-base font-semibold">{item ? 'Edit Item' : 'Add New Item'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto transition-opacity">
+      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-xl my-auto animate-in fade-in zoom-in duration-200 border border-gray-100 overflow-hidden">
+        
+        {/* Modal Header */}
+        <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+          <div>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">{item ? 'Update Inventory' : 'Add New Item'}</h2>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Physical Stock Intelligence</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="w-10 h-10 rounded-xl hover:bg-white hover:shadow-md text-gray-400 hover:text-gray-900 transition-all flex items-center justify-center text-2xl"
+          >
+            &times;
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+        <form onSubmit={handleSubmit} className="px-8 py-8 space-y-8">
           {!item && (
-            <div className="bg-brand-50 border border-brand-200 rounded-lg px-3 py-2 text-xs text-brand-700">
-              {aiCategorized === false
-                ? '⚡ Category set by smart rules (AI unavailable)'
-                : '🤖 Leave category blank for AI auto-detection'}
+            <div className="bg-brand-50 border border-brand-100 rounded-2xl px-5 py-4 flex items-center gap-4 group">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-lg shadow-sm border border-brand-100 group-hover:scale-110 transition-transform">
+                🤖
+              </div>
+              <p className="text-xs font-bold text-brand-700 leading-snug">
+                {aiCategorized === false
+                  ? 'Smart classification enabled. Backend syncing...'
+                  : 'Leave the category blank for our AI to automatically classify your item based on its name.'}
+              </p>
             </div>
           )}
 
-          {/* Row 1 */}
-          {field('Item Name *', 'name', 'text', 'e.g. Organic Oats')}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+            
+            {/* Main Info */}
+            <div className="md:col-span-2 space-y-1">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asset Name</label>
+               <input
+                type="text"
+                value={form.name}
+                onChange={(e) => set('name', e.target.value)}
+                placeholder="e.g. Organic Almond Milk"
+                className={`w-full bg-gray-50 border-2 rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:ring-4 focus:ring-brand-500/10 ${errors.name ? 'border-red-200 bg-red-50/30' : 'border-transparent focus:border-brand-500'}`}
+              />
+              {errors.name && <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1">{errors.name}</p>}
+            </div>
 
-          {/* Row 2 */}
-          <div className="grid grid-cols-2 gap-3">
-            {field('Quantity *', 'quantity', 'number', '0')}
-            {field('Unit *', 'unit', 'text', 'kg, L, cans…')}
+            {/* Quantity Controls */}
+            <div className="space-y-1">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Quantity</label>
+               <input
+                type="number"
+                value={form.quantity}
+                onChange={(e) => set('quantity', e.target.value)}
+                className={`w-full bg-gray-50 border-2 rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:ring-4 focus:ring-brand-500/10 ${errors.quantity ? 'border-red-200 bg-red-50/30' : 'border-transparent focus:border-brand-500'}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Measurement Unit</label>
+               <input
+                type="text"
+                value={form.unit}
+                onChange={(e) => set('unit', e.target.value)}
+                placeholder="kg, L, pack..."
+                className={`w-full bg-gray-50 border-2 rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:ring-4 focus:ring-brand-500/10 ${errors.unit ? 'border-red-200 bg-red-50/30' : 'border-transparent focus:border-brand-500'}`}
+              />
+            </div>
+
+            {/* Categorization */}
+            <div className="md:col-span-2 space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Stock Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => set('category', e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 appearance-none pointer-events-auto"
+              >
+                <option value="">{item ? 'Uncategorized' : '🤖 AI Auto-Detect'}</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            {/* Timestamps */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Expiration</label>
+              <input
+                type="date"
+                value={form.expiry_date}
+                onChange={(e) => set('expiry_date', e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Purchase Date</label>
+              <input
+                type="date"
+                value={form.purchase_date}
+                onChange={(e) => set('purchase_date', e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+              />
+            </div>
+
+            {/* Financials */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Reorder Point</label>
+              <input
+                type="number"
+                value={form.reorder_threshold}
+                onChange={(e) => set('reorder_threshold', e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cost Per Unit ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.cost_per_unit}
+                onChange={(e) => set('cost_per_unit', e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+              />
+            </div>
+
+            {/* Supply Chain */}
+            <div className="md:col-span-2 space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Supplier Entity</label>
+               <input
+                type="text"
+                value={form.supplier}
+                onChange={(e) => set('supplier', e.target.value)}
+                placeholder="e.g. Regional Distribution Center"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm font-bold transition-all focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+              />
+            </div>
           </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Category {!item && <span className="text-gray-400">(blank = AI detects)</span>}
-            </label>
-            <select
-              value={form.category}
-              onChange={(e) => set('category', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          {/* Modal Actions */}
+          <div className="flex gap-4 pt-4">
+            <button 
+              type="button" 
+              onClick={onClose}
+              className="flex-1 bg-white border-2 border-gray-100 rounded-[20px] py-4 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 hover:border-gray-200 transition-all active:scale-95"
             >
-              <option value="">Auto-detect</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-
-          {/* Row 3 */}
-          <div className="grid grid-cols-2 gap-3">
-            {field('Expiry Date', 'expiry_date', 'date')}
-            {field('Purchase Date', 'purchase_date', 'date')}
-          </div>
-
-          {/* Row 4 */}
-          <div className="grid grid-cols-2 gap-3">
-            {field('Reorder Threshold', 'reorder_threshold', 'number', '0')}
-            {field('Cost per Unit ($)', 'cost_per_unit', 'number', '0.00')}
-          </div>
-
-          {/* Supplier */}
-          {field('Supplier', 'supplier', 'text', 'e.g. Green Harvest Co.')}
-
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 border border-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-50">
-              Cancel
+              Discard Changes
             </button>
-            <button type="submit" disabled={isSubmitting}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700 disabled:opacity-50">
-              {isSubmitting ? 'Saving…' : item ? 'Save Changes' : 'Add Item'}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex-[1.5] bg-brand-600 text-white rounded-[20px] py-4 text-xs font-black uppercase tracking-widest shadow-lg shadow-brand-200 hover:bg-brand-700 disabled:opacity-50 transition-all active:scale-95"
+            >
+              {isSubmitting ? 'Syncing...' : item ? 'Authorize Update' : 'Initialize Asset'}
             </button>
           </div>
         </form>

@@ -14,9 +14,13 @@ import { AuditPage }          from './pages/AuditPage.js';
 export function App() {
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50 relative">
+        {/* Global texture overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" 
+             style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto relative z-10">
           <Routes>
             <Route path="/"                  element={<DashboardPage />} />
             <Route path="/inventory"         element={<InventoryPage />} />
