@@ -146,28 +146,39 @@ export async function getExpiryCalendar(req: Request, res: Response, next: NextF
     if (isNaN(year) || isNaN(month) || month < 1 || month > 12)
       return next(new AppError(400, 'Valid year and month (1-12) are required'));
 
-    const all = await itemSvc.listItems(getPool(), {});
     const pad = (n: number) => String(n).padStart(2, '0');
     const prefix = `${year}-${pad(month)}-`;
 
-    const itemsByDate: Record<string, typeof all> = {};
-    for (const item of all) {
-      if (!item.expiry_date) continue;
-      const dateStr = item.expiry_date instanceof Date
-        ? item.expiry_date.toISOString().slice(0, 10)
-        : String(item.expiry_date).slice(0, 10);
-      if (dateStr.startsWith(prefix)) {
-        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-        itemsByDate[dateStr].push({ ...item, expiry_date: dateStr });
-      }
+    const [batches] = await getPool().execute<import('mysql2/promise').RowDataPacket[]>(
+      `SELECT b.*, i.name, i.unit, i.category 
+       FROM item_batches b
+       JOIN items i ON i.id = b.item_id
+       WHERE i.is_archived = 0 AND b.quantity > 0 AND b.expiry_date LIKE ?`,
+      [`${prefix}%`]
+    );
+
+    const itemsByDate: Record<string, any[]> = {};
+    for (const b of batches) {
+      const dateStr = b.expiry_date instanceof Date
+        ? b.expiry_date.toISOString().slice(0, 10)
+        : String(b.expiry_date).slice(0, 10);
+      
+      if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+      itemsByDate[dateStr].push({
+        id: b.item_id,
+        batch_id: b.id,
+        name: b.name,
+        quantity: b.quantity,
+        unit: b.unit,
+        category: b.category,
+        expiry_date: dateStr
+      });
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const expired  = all.filter((i) => {
-      if (!i.expiry_date) return false;
-      const d = i.expiry_date instanceof Date ? i.expiry_date.toISOString().slice(0, 10) : String(i.expiry_date).slice(0, 10);
-      return d < today;
-    }).length;
+    const [allCount] = await getPool().execute<import('mysql2/promise').RowDataPacket[]>(
+      'SELECT COUNT(*) as total FROM item_batches WHERE expiry_date < CURDATE() AND quantity > 0'
+    );
+    const expired = (allCount[0] as any).total;
     const thisMonth = Object.values(itemsByDate).flat().length;
 
     res.json({ items_by_date: itemsByDate, summary: { this_month: thisMonth, expired_total: expired } });

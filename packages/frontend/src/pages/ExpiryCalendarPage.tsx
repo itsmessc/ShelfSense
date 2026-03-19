@@ -28,8 +28,8 @@ function ItemChip({ item }: { item: Item }) {
     : 'bg-green-100 text-green-700';
   return (
     <Link to={`/inventory/${item.id}`}>
-      <span className={`text-xs px-1.5 py-0.5 rounded font-medium truncate block max-w-full hover:opacity-75 ${cls}`}>
-        {item.name}
+      <span className={`text-[10px] px-1.5 py-0.5 rounded font-black truncate block max-w-full hover:opacity-75 ${cls}`}>
+        {item.name} <span className="opacity-60 ml-0.5">({item.quantity})</span>
       </span>
     </Link>
   );
@@ -147,7 +147,9 @@ export function ExpiryCalendarPage() {
                     {day}
                   </div>
                   <div className="space-y-0.5">
-                    {items.slice(0, 3).map((item) => <ItemChip key={item.id} item={item} />)}
+                    {items.slice(0, 3).map((item: any) => (
+                      <ItemChip key={item.batch_id || item.id} item={item} />
+                    ))}
                     {items.length > 3 && (
                       <span className="text-xs text-gray-400">+{items.length - 3} more</span>
                     )}

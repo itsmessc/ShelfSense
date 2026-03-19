@@ -5,7 +5,8 @@ import type { Pool } from 'mysql2/promise';
 import type { UsageLog, ForecastResult } from '../types/index.js';
 import { AiUnavailableError } from '../types/index.js';
 import * as usageRepo from '../repositories/usageRepository.js';
-import { getItemById } from './itemService.js';
+import * as batchRepo from '../repositories/batchRepository.js';
+import { getItemById, syncItemTotals } from './itemService.js';
 import * as ai from './ai/aiOrchestrator.js';
 import * as fallback from './fallbackService.js';
 
@@ -15,9 +16,18 @@ export async function logUsage(
   quantityUsed: number,
   notes?: string,
 ): Promise<{ log: UsageLog; updatedQuantity: number }> {
-  const log             = await usageRepo.insertLog(pool, itemId, quantityUsed, notes);
-  const updatedQuantity = await usageRepo.decrementItemQty(pool, itemId, quantityUsed);
-  return { log, updatedQuantity };
+  // 1. Log the record
+  const log = await usageRepo.insertLog(pool, itemId, quantityUsed, notes);
+  
+  // 2. Deduct from batches using FEFO (First Expired First Out)
+  await batchRepo.deductFEFO(pool, itemId, quantityUsed);
+  
+  // 3. Sync the main item's total quantity and earliest expiry
+  await syncItemTotals(pool, itemId);
+  
+  // 4. Return new total
+  const item = await getItemById(pool, itemId);
+  return { log, updatedQuantity: item ? Number(item.quantity) : 0 };
 }
 
 export async function getUsageHistory(

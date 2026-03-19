@@ -21,17 +21,45 @@ await runMigrations(pool);
 
 await pool.execute('SET FOREIGN_KEY_CHECKS = 0');
 await pool.execute('TRUNCATE TABLE usage_logs');
+await pool.execute('TRUNCATE TABLE audit_logs');
+await pool.execute('TRUNCATE TABLE item_batches');
 await pool.execute('TRUNCATE TABLE items');
 await pool.execute('SET FOREIGN_KEY_CHECKS = 1');
 
+console.log('Inserting items and batches...');
 for (const item of sampleData) {
-  await pool.execute(
+  const [result] = await pool.execute<import('mysql2').ResultSetHeader>(
     `INSERT INTO items (name, quantity, unit, category, expiry_date, reorder_threshold, cost_per_unit, supplier, purchase_date)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [item.name, item.quantity, item.unit, item.category,
      item.expiry_date ?? null, item.reorder_threshold,
      item.cost_per_unit ?? null, item.supplier ?? null, item.purchase_date ?? null]
   );
+  const itemId = result.insertId;
+
+  // Insert primary batch
+  await pool.execute(
+    'INSERT INTO item_batches (item_id, quantity, expiry_date) VALUES (?, ?, ?)',
+    [itemId, item.quantity, item.expiry_date ?? null]
+  );
+
+  // Demo: Add a second batch for Oat Milk to show multi-expiry
+  if (item.name === 'Oat Milk') {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const expiryStr = nextMonth.toISOString().slice(0, 10);
+    
+    await pool.execute(
+      'INSERT INTO item_batches (item_id, quantity, expiry_date) VALUES (?, ?, ?)',
+      [itemId, 3, expiryStr]
+    );
+
+    // Update main item quantity to reflect both batches (2 from JSON + 3 new = 5)
+    await pool.execute(
+      'UPDATE items SET quantity = quantity + 3 WHERE id = ?',
+      [itemId]
+    );
+  }
 }
 
 // Synthetic usage logs for forecasting demo (last 20 days of data)

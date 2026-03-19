@@ -17,6 +17,15 @@ export interface Item {
   // computed fields (not stored)
   alert_status?: AlertStatus;
   forecast_days?: number | null;
+  batches?:      ItemBatch[];
+}
+
+export interface ItemBatch {
+  id:          number;
+  item_id:     number;
+  quantity:    number;
+  expiry_date: string | null;
+  received_at: string;
 }
 
 export interface UsageLog {

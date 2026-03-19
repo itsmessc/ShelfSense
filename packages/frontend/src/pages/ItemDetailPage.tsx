@@ -4,6 +4,7 @@ import { getItem, generateForecast, getUsageHistory, getSupplierSuggestions } fr
 import { ForecastCard } from '../components/forecast/ForecastCard.js';
 import { SupplierCard } from '../components/procurement/SupplierCard.js';
 import { UsageChart } from '../components/usage/UsageChart.js';
+import { BatchManager } from '../components/inventory/BatchManager.js';
 import type { Item, ForecastResult, UsageHistory, SupplierSuggestion } from '../types/index.js';
 
 const STATUS_CLS: Record<string, string> = {
@@ -140,8 +141,8 @@ export function ItemDetailPage() {
           <div className="space-y-6">
             {[
               ['Primary Supplier', item.supplier ?? 'Not specified'],
-              ['Expiration Date',  item.expiry_date ? new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(new Date(item.expiry_date)) : 'Shelf Stable'],
-              ['Purchase Date',    item.purchase_date ?? 'Unknown'],
+              ['Earliest Expiry',  item.expiry_date ? new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(new Date(item.expiry_date)) : 'Shelf Stable'],
+              ['Last Purchase',    item.purchase_date ?? 'Unknown'],
               ['Onboarding Date',  new Date(item.created_at).toLocaleDateString()],
             ].map(([label, value]) => (
               <div key={label} className="space-y-1">
@@ -149,6 +150,10 @@ export function ItemDetailPage() {
                 <p className="text-sm font-bold text-gray-900">{value}</p>
               </div>
             ))}
+          </div>
+
+          <div className="pt-6 border-t border-gray-50">
+            <BatchManager batches={item.batches || []} unit={item.unit} />
           </div>
           
           <div className="pt-4 border-t border-gray-50">

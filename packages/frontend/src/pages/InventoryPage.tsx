@@ -6,6 +6,7 @@ import { ItemForm, CATEGORIES } from '../components/inventory/ItemForm.js';
 import { UsageLogForm } from '../components/usage/UsageLogForm.js';
 import { exportItems, importItems, type ScannedItem } from '../api/client.js';
 import { ShelfScanModal } from '../components/inventory/ShelfScanModal.js';
+import { Modal } from '../components/common/Modal.js';
 import type { Item } from '../types/index.js';
 import { ApiError } from '../types/index.js';
 
@@ -59,8 +60,8 @@ function CSVPreviewModal({
   const preview = rows.slice(0, 8);
   const cols    = Object.keys(rows[0] ?? {}).slice(0, 6);
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl">
+    <Modal onClose={onCancel}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden">
         <div className="px-6 py-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">CSV Preview</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
@@ -101,7 +102,7 @@ function CSVPreviewModal({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -399,7 +400,7 @@ export function InventoryPage() {
       )}
 
       {usageTarget && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <Modal onClose={() => setUsageTarget(null)}>
           <div className="w-full max-w-sm">
             <UsageLogForm
               items={items}
@@ -408,7 +409,7 @@ export function InventoryPage() {
               onClose={() => setUsageTarget(null)}
             />
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

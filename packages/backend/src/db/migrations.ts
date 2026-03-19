@@ -66,4 +66,36 @@ export async function runMigrations(pool: mysql.Pool): Promise<void> {
       // column may already exist — safe to ignore
     }
   }
+
+  // --- Batch Tracking System ---
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS item_batches (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      item_id      INT NOT NULL,
+      quantity     DECIMAL(10,3) NOT NULL,
+      expiry_date  DATE,
+      received_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Data Migration: Create initial batches for existing items that don't have any
+  const [items] = await pool.execute<mysql.RowDataPacket[]>(
+    'SELECT id, quantity, expiry_date FROM items WHERE is_archived = 0 AND quantity > 0'
+  );
+
+  for (const item of items) {
+    const [batches] = await pool.execute<mysql.RowDataPacket[]>(
+      'SELECT id FROM item_batches WHERE item_id = ?',
+      [item.id]
+    );
+
+    if (batches.length === 0) {
+      // Create a default batch representing current state
+      await pool.execute(
+        'INSERT INTO item_batches (item_id, quantity, expiry_date) VALUES (?, ?, ?)',
+        [item.id, item.quantity, item.expiry_date]
+      );
+    }
+  }
 }

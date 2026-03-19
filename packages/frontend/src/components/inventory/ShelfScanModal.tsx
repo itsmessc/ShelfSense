@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Modal } from '../common/Modal.js';
 import { scanShelf, type ScannedItem } from '../../api/client.js';
 
 interface Props {
@@ -86,8 +87,8 @@ export function ShelfScanModal({ onConfirm, onClose }: Props) {
   const selectedCount = items?.filter((i) => i._selected && i.name.trim()).length ?? 0;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <Modal onClose={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
@@ -308,6 +309,6 @@ export function ShelfScanModal({ onConfirm, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

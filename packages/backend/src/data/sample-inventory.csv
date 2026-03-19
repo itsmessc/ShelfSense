@@ -1,0 +1,6 @@
+name,quantity,unit,category,expiry_date,reorder_threshold,cost_per_unit,supplier,purchase_date
+"Oat Milk",12,L,"Dairy Alternatives",2026-06-30,5,1.55,"EcoFarm Wholesale",2026-01-15
+"Brown Rice",25,kg,"Grains & Cereals",2027-01-01,10,2.10,"Bulk Grains Co",2025-12-10
+"Extra Virgin Olive Oil",10,L,"Oils & Fats",2026-12-01,2,8.50,"Mediterranean Imports",2026-02-01
+"Hand Sanitizer (70%)",5,L,Chemicals,2028-06-01,1,12.00,"SafetyFirst Ltd",2026-01-20
+"A4 Recycled Paper",20,reams,"Office Supplies",,5,3.95,"EcoOffice Solutions",2026-03-01

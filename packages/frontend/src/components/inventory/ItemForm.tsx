@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Modal } from '../common/Modal.js';
 import type { Item } from '../../types/index.js';
 
 export const CATEGORIES = [
@@ -104,8 +105,8 @@ export function ItemForm({ item, onSubmit, onClose, isSubmitting, aiCategorized 
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto transition-opacity">
-      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-xl my-auto animate-in fade-in zoom-in duration-200 border border-gray-100 overflow-hidden">
+    <Modal onClose={onClose}>
+      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-xl animate-in fade-in zoom-in duration-200 border border-gray-100 overflow-hidden">
         
         {/* Modal Header */}
         <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
@@ -260,6 +261,6 @@ export function ItemForm({ item, onSubmit, onClose, isSubmitting, aiCategorized 
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }
