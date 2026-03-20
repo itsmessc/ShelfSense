@@ -13,7 +13,7 @@ ShelfSense is an AI-powered inventory management system designed to reduce waste
 ### 🎬 Presentation Link
 > [!IMPORTANT]
 > **View the 7-minute Demo & Architecture Walkthrough here:**  
-> [Presentation Video Link (YouTube/Vimeo)](#) <!-- REPLACE WITH ACTUAL LINK -->
+> [Presentation Video Link (YouTube)](https://youtu.be/Ps1kWn0yRyE)
 
 ---
 
@@ -86,6 +86,3 @@ The assistant suggested implementing real-time WebSocket updates for audit logs.
 ## 📑 Detailed Documentation
 For a deep dive into the technical stack, project architecture, and design choices, see:  
 👉 [DOCUMENTATION.md](DOCUMENTATION.md)
-
-## Demo Video Link
-https://youtu.be/Ps1kWn0yRyE
