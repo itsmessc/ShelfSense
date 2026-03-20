@@ -6,6 +6,7 @@ import { ItemForm, CATEGORIES } from '../components/inventory/ItemForm.js';
 import { UsageLogForm } from '../components/usage/UsageLogForm.js';
 import { exportItems, importItems, type ScannedItem } from '../api/client.js';
 import { ShelfScanModal } from '../components/inventory/ShelfScanModal.js';
+import { PurchaseLogForm } from '../components/usage/PurchaseLogForm.js';
 import { Modal } from '../components/common/Modal.js';
 import type { Item } from '../types/index.js';
 import { ApiError } from '../types/index.js';
@@ -34,15 +35,6 @@ function parseCSV(text: string): Array<Record<string, string>> {
     });
 }
 
-function exportCSVTemplate() {
-  const header = 'name,quantity,unit,category,expiry_date,reorder_threshold,cost_per_unit,supplier,purchase_date';
-  const sample = 'Oat Milk,10,L,Dairy Alternatives,2025-06-30,2,1.50,EcoFarm,2025-01-01';
-  const blob   = new Blob([`${header}\n${sample}\n`], { type: 'text/csv' });
-  const url    = URL.createObjectURL(blob);
-  const a      = document.createElement('a');
-  a.href = url; a.download = 'shelfsense-template.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
 
 // ── CSV Preview Modal ─────────────────────────────────────────────────────────
 
@@ -58,7 +50,7 @@ function CSVPreviewModal({
   importing: boolean;
 }) {
   const preview = rows.slice(0, 8);
-  const cols    = Object.keys(rows[0] ?? {}).slice(0, 6);
+  const cols = Object.keys(rows[0] ?? {}).slice(0, 6);
   return (
     <Modal onClose={onCancel}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden">
@@ -110,25 +102,26 @@ function CSVPreviewModal({
 
 export function InventoryPage() {
   const { items, isLoading, error, fetchItems, addItem, editItem, removeItem } = useItems();
-  const navigate  = useNavigate();
-  const fileRef   = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const [search,    setSearch]    = useState('');
-  const [category,  setCategory]  = useState('All');
-  const [status,    setStatus]    = useState('All');
-  const [sortKey,   setSortKey]   = useState('name');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+  const [status, setStatus] = useState('All');
+  const [sortKey, setSortKey] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const [showForm,      setShowForm]      = useState(false);
-  const [editTarget,    setEditTarget]    = useState<Item | null>(null);
-  const [usageTarget,   setUsageTarget]   = useState<Item | null>(null);
-  const [submitting,    setSubmitting]    = useState(false);
-  const [formError,     setFormError]     = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<Item | null>(null);
+  const [usageTarget, setUsageTarget] = useState<Item | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const [aiCategorized, setAiCategorized] = useState<boolean | undefined>(undefined);
 
-  const [importResult,  setImportResult]  = useState<{ inserted: number; errors: { row: number; message: string }[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ inserted: number; errors: { row: number; message: string }[] } | null>(null);
   const [importLoading, setImportLoading] = useState(false);
-  const [csvRows,       setCsvRows]       = useState<Array<Record<string, string>> | null>(null);
+  const [csvRows, setCsvRows] = useState<Array<Record<string, string>> | null>(null);
+  const [showPurchaseForm, setShowPurchaseForm] = useState(false);
   const [showScanModal, setShowScanModal] = useState(false);
 
   // Bulk selection
@@ -137,11 +130,11 @@ export function InventoryPage() {
 
   useEffect(() => {
     fetchItems({
-      search:    search || undefined,
-      category:  category !== 'All' ? category : undefined,
-      status:    status !== 'All' ? (status as 'critical' | 'warning' | 'normal') : undefined,
-      sort:      sortKey,
-      order:     sortOrder,
+      search: search || undefined,
+      category: category !== 'All' ? category : undefined,
+      status: status !== 'All' ? (status as 'critical' | 'warning' | 'normal') : undefined,
+      sort: sortKey,
+      order: sortOrder,
     });
   }, [search, category, status, sortKey, sortOrder, fetchItems]);
 
@@ -154,7 +147,7 @@ export function InventoryPage() {
     setSubmitting(true); setFormError('');
     try {
       if (editTarget) { await editItem(editTarget.id, data); }
-      else            { const res = await addItem(data); setAiCategorized(res.ai_categorized); }
+      else { const res = await addItem(data); setAiCategorized(res.ai_categorized); }
       setShowForm(false); setEditTarget(null);
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Failed to save item');
@@ -216,7 +209,7 @@ export function InventoryPage() {
   function toggleAll(allIds: number[]) {
     const allSelected = allIds.every((id) => selectedIds.has(id));
     if (allSelected) setSelectedIds(new Set());
-    else             setSelectedIds(new Set(allIds));
+    else setSelectedIds(new Set(allIds));
   }
 
   async function handleBulkDelete() {
@@ -231,8 +224,8 @@ export function InventoryPage() {
   function handleBulkExport() {
     const selected = items.filter((i) => selectedIds.has(i.id));
     const blob = new Blob([JSON.stringify(selected, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = `shelfsense-selected-${Date.now()}.json`; a.click();
     URL.revokeObjectURL(url);
   }
@@ -250,10 +243,6 @@ export function InventoryPage() {
         </div>
         <div className="flex gap-2.5 flex-wrap">
           <div className="flex bg-white rounded-xl shadow-sm border p-1">
-            <button onClick={() => exportCSVTemplate()} className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-              📄 Template
-            </button>
-            <div className="w-px h-4 my-auto bg-gray-200" />
             <button onClick={() => exportItems()} className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
               ⬇ Export
             </button>
@@ -264,12 +253,17 @@ export function InventoryPage() {
             </button>
           </div>
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCSVFileSelect} />
-          
+
           <button onClick={() => setShowScanModal(true)}
             className="bg-white border border-brand-200 text-brand-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-50 transition-all shadow-sm flex items-center gap-2">
             <span>📷</span> Scan Shelf
           </button>
-          
+
+          <button onClick={() => setShowPurchaseForm(true)}
+            className="bg-white border border-brand-200 text-brand-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-50 transition-all shadow-sm flex items-center gap-2">
+            <span>📥</span> Log Purchase
+          </button>
+
           <button
             onClick={() => { setEditTarget(null); setShowForm(true); setAiCategorized(undefined); }}
             className="bg-brand-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-200 flex items-center gap-2">
@@ -304,7 +298,7 @@ export function InventoryPage() {
             placeholder="Search by name, supplier or category…"
             className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-all" />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-2">Category</span>
           <select value={category} onChange={(e) => setCategory(e.target.value)}
@@ -407,6 +401,18 @@ export function InventoryPage() {
               preselectedItem={usageTarget}
               onSuccess={() => { fetchItems(); setUsageTarget(null); }}
               onClose={() => setUsageTarget(null)}
+            />
+          </div>
+        </Modal>
+      )}
+
+      {showPurchaseForm && (
+        <Modal onClose={() => setShowPurchaseForm(false)}>
+          <div className="w-full max-w-md">
+            <PurchaseLogForm
+              items={items}
+              onSuccess={() => { fetchItems(); }}
+              onClose={() => setShowPurchaseForm(false)}
             />
           </div>
         </Modal>
